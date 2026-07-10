@@ -15,7 +15,7 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Todd Brunia | AI Workflow Consulting",
   description:
-    "Des Moines-based AI workflow consulting for Midwestern SMBs exploring useful automation with sound engineering judgment.",
+    "Practical AI workflow consulting for Midwestern software and operations teams, grounded in 20+ years of enterprise engineering experience.",
 };
 
 export default function RootLayout({

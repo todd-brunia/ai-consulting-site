@@ -2,7 +2,6 @@ export const navItems = [
   { label: "Services", href: "#services" },
   { label: "How We Work", href: "#process" },
   { label: "About", href: "#about" },
-  { label: "Contact", href: "#contact" },
 ];
 
 export const contactHref =

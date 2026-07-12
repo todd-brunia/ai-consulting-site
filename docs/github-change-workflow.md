@@ -17,8 +17,15 @@ Create these labels in GitHub before running the first trial:
 | `preview-ready` | CI and the preview are ready for human review. |
 | `blocked` | Progress requires a decision, permission, or external change. |
 
-Optional classification labels are `content`, `design`, `feature`, `bug`,
+Issue-category labels are `website`, `engineering`, `devops`, and `workflow`.
+Additional classification labels are `content`, `design`, `feature`, `bug`,
 `accessibility`, `seo`, and `maintenance`.
+
+Every tracked-file change requires an originating issue. Use Website change for
+visitor outcomes, Engineering change for application internals, and DevOps or
+workflow change for delivery, repository policy, and AI process. Documentation,
+dependencies, maintenance, and urgent work follow the same planning and approval
+gates; they are not exceptions.
 
 Normal lifecycle:
 

@@ -1,8 +1,9 @@
 name: Website change
-description: Propose a change to the consulting website
+description: Propose a visitor-facing content, design, or behavior change
 title: "[Website]: "
 labels:
   - needs-planning
+  - website
 body:
   - type: markdown
     attributes:
@@ -52,3 +53,15 @@ body:
     attributes:
       label: Acceptance criteria
       description: What must be true for this issue to be complete?
+
+  - type: textarea
+    id: constraints
+    attributes:
+      label: Constraints or risks
+      description: Note factual, accessibility, responsive, timing, or scope constraints.
+
+  - type: textarea
+    id: supporting-context
+    attributes:
+      label: Supporting context
+      description: Add relevant links, screenshots, examples, analytics, or other evidence.

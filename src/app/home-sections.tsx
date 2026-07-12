@@ -17,25 +17,71 @@ export function Header() {
     <header className="border-b border-[#d8d3c7] bg-[#f7f5ef]/95">
       <nav
         aria-label="Main navigation"
-        className="mx-auto flex max-w-6xl items-center justify-between px-6 py-5 lg:px-8"
+        className="mx-auto flex max-w-6xl items-center justify-between gap-6 px-6 py-4 lg:px-8"
       >
         <a
           href="#top"
-          className={`text-sm font-semibold uppercase tracking-[0.14em] text-[#294653] ${focusClass}`}
+          aria-label="Todd Brunia AI Workflow Consulting"
+          className={`flex min-h-12 flex-col justify-center text-[#294653] ${focusClass}`}
         >
-          Todd Brunia
+          <span className="text-sm font-semibold uppercase tracking-[0.14em]">
+            Todd Brunia
+          </span>
+          <span className="mt-1 text-xs font-medium tracking-[0.04em] text-[#667276]">
+            AI Workflow Consulting
+          </span>
         </a>
-        <div className="hidden items-center gap-8 text-sm font-medium text-[#516166] sm:flex">
-          {navItems.map((item) => (
-            <a
-              key={item.href}
-              href={item.href}
-              className={`transition hover:text-[#1f2a2e] ${focusClass}`}
-            >
-              {item.label}
-            </a>
-          ))}
+        <div className="hidden items-center gap-6 text-sm font-medium text-[#516166] md:flex">
+          <div className="flex items-center gap-6">
+            {navItems.map((item) => (
+              <a
+                key={item.href}
+                href={item.href}
+                className={`min-h-11 content-center transition hover:text-[#1f2a2e] ${focusClass}`}
+              >
+                {item.label}
+              </a>
+            ))}
+          </div>
+          <a
+            href={contactHref}
+            className={`inline-flex min-h-11 items-center justify-center rounded-md bg-[#254c5f] px-4 py-2 text-center text-sm font-semibold text-white transition hover:bg-[#1d3d4c] ${focusClass}`}
+          >
+            Discuss Your Workflow
+          </a>
         </div>
+        <details className="group relative md:hidden">
+          <summary
+            className={`flex min-h-11 cursor-pointer list-none items-center justify-center rounded-md border border-[#b8b2a5] px-4 text-sm font-semibold text-[#294653] transition hover:border-[#294653] hover:bg-white/60 [&::-webkit-details-marker]:hidden ${focusClass}`}
+          >
+            Menu
+            <span
+              aria-hidden="true"
+              className="ml-2 text-lg leading-none transition group-open:rotate-45"
+            >
+              +
+            </span>
+          </summary>
+          <div className="absolute right-0 z-20 mt-3 w-64 border border-[#c9c3b7] bg-[#fdfcf8] p-3 shadow-lg">
+            <div className="flex flex-col text-sm font-medium text-[#435156]">
+              {navItems.map((item) => (
+                <a
+                  key={item.href}
+                  href={item.href}
+                  className={`flex min-h-12 items-center px-3 transition hover:bg-[#f1eee6] hover:text-[#1f2a2e] ${focusClass}`}
+                >
+                  {item.label}
+                </a>
+              ))}
+              <a
+                href={contactHref}
+                className={`mt-2 inline-flex min-h-12 items-center justify-center rounded-md bg-[#254c5f] px-4 py-2 text-center text-sm font-semibold text-white transition hover:bg-[#1d3d4c] ${focusClass}`}
+              >
+                Discuss Your Workflow
+              </a>
+            </div>
+          </div>
+        </details>
       </nav>
     </header>
   );

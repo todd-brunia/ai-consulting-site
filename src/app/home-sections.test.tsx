@@ -4,28 +4,39 @@ import { describe, expect, it } from "vitest";
 import { Header, Hero } from "./home-sections";
 
 describe("Header", () => {
-  it("provides an accessible site identity and primary navigation", () => {
+  it("provides consulting context in the accessible site identity", () => {
     render(<Header />);
 
     expect(
-      screen.getByRole("link", { name: "Todd Brunia" }),
+      screen.getByRole("link", {
+        name: "Todd Brunia AI Workflow Consulting",
+      }),
     ).toHaveAttribute("href", "#top");
+  });
+
+  it("provides desktop and mobile navigation with a primary action", () => {
+    render(<Header />);
 
     const navigation = screen.getByRole("navigation", {
       name: "Main navigation",
     });
 
-    expect(navigation).toContainElement(
-      screen.getByRole("link", { name: "Services" }),
-    );
-    expect(screen.getByRole("link", { name: "Services" })).toHaveAttribute(
-      "href",
-      "#services",
-    );
-    expect(screen.getByRole("link", { name: "Contact" })).toHaveAttribute(
-      "href",
-      "#contact",
-    );
+    const serviceLinks = screen.getAllByRole("link", { name: "Services" });
+    expect(serviceLinks).toHaveLength(2);
+    serviceLinks.forEach((link) => {
+      expect(navigation).toContainElement(link);
+      expect(link).toHaveAttribute("href", "#services");
+    });
+
+    const contactLinks = screen.getAllByRole("link", {
+      name: "Discuss Your Workflow",
+    });
+    expect(contactLinks).toHaveLength(2);
+    contactLinks.forEach((link) => {
+      expect(link).toHaveAttribute("href", expect.stringMatching(/^mailto:/));
+    });
+
+    expect(screen.getByText("Menu").closest("summary")).toBeInTheDocument();
   });
 });
 

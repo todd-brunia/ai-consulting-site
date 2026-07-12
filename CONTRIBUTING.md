@@ -38,12 +38,30 @@ Verified on July 12, 2026:
 
 ## 1. Create the Issue
 
-In GitHub, select **New issue → Website change**. Describe the problem or
-opportunity and the desired visitor or business outcome. Add useful acceptance
-criteria without prescribing implementation details unnecessarily.
+Every change to a tracked repository file begins with an issue. Documentation,
+dependencies, tests, CI, deployment, maintenance, and workflow changes do not
+bypass intake because they appear small or are not visitor-facing.
 
-The form applies `needs-planning`. Add an optional classification label such as
-`design`, `content`, or `bug`.
+In GitHub, select **New issue** and choose the form that matches the outcome:
+
+| Form | Use it for |
+| --- | --- |
+| **Website change** | Visitor-facing content, design, navigation, accessibility, SEO, performance experience, or site behavior. |
+| **Engineering change** | Application internals, architecture, refactoring, tests, dependencies, security, performance engineering, or technical debt. |
+| **DevOps or workflow change** | GitHub Actions, Vercel, CI/CD, repository policy, issue and PR workflow, Codex guidance, or automation. |
+
+For a bug, choose Website when the failure is experienced by a visitor and
+Engineering when it is primarily an internal code, build, or test failure. Use
+DevOps or workflow when the failure is in delivery or repository operations.
+
+Describe the problem or opportunity and desired outcome. Add useful acceptance
+criteria without prescribing implementation details unnecessarily. If more than
+one form seems applicable, choose the form that matches the primary outcome and
+note secondary concerns in supporting context.
+
+Every form applies `needs-planning` and a category label. Add optional
+classification labels such as `design`, `content`, `bug`, `accessibility`, or
+`maintenance` when useful.
 
 ## 2. Ask Codex for a Plan
 

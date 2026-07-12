@@ -22,9 +22,12 @@ qualified visitor toward discussing a real workflow.
 2. Read `docs/design-principles.md`.
 3. Read `docs/content-style-guide.md` for visitor-facing copy.
 4. Inspect existing components before creating new ones.
-5. Confirm that the originating issue has an approved plan and the
+5. Confirm that every tracked-file change has an originating issue. This
+   includes documentation, dependencies, tests, CI, deployment configuration,
+   repository policy, and workflow changes; there is no small-change bypass.
+6. Confirm that the originating issue has an approved plan and the
    `approved-for-build` label.
-6. Prefer the smallest change that satisfies the approved acceptance criteria.
+7. Prefer the smallest change that satisfies the approved acceptance criteria.
 
 ## Planning Issues
 

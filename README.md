@@ -1,5 +1,11 @@
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
+## Contributing
+
+See [`CONTRIBUTING.md`](CONTRIBUTING.md) for the human-approved AI change
+workflow. Future automation opportunities and safeguards are tracked in
+[`docs/automation-roadmap.md`](docs/automation-roadmap.md).
+
 ## Getting Started
 
 First, run the development server:

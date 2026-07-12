@@ -1,5 +1,8 @@
 # Vision
 
+> The maintained product reference is [`docs/product-brief.md`](docs/product-brief.md).
+> This document is retained as the original vision and historical context.
+
 ## Purpose
 
 Create a simple, credible website for a small AI workflow consulting practice.

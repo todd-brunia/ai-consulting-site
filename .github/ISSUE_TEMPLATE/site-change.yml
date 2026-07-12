@@ -1,0 +1,54 @@
+name: Website change
+description: Propose a change to the consulting website
+title: "[Website]: "
+labels:
+  - needs-planning
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Describe the visitor or business need. AI will propose a plan before any code changes begin.
+
+  - type: dropdown
+    id: change-type
+    attributes:
+      label: Change type
+      options:
+        - Content
+        - Visual design
+        - New section
+        - Bug
+        - Accessibility
+        - Performance
+        - SEO
+        - Experiment
+    validations:
+      required: true
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem or opportunity
+      description: What is not working or what could be improved?
+    validations:
+      required: true
+
+  - type: textarea
+    id: outcome
+    attributes:
+      label: Desired outcome
+      description: Describe the visitor behavior or business result you want.
+    validations:
+      required: true
+
+  - type: textarea
+    id: idea
+    attributes:
+      label: Initial idea
+      description: Describe a possible solution, if one is already in mind.
+
+  - type: textarea
+    id: acceptance-criteria
+    attributes:
+      label: Acceptance criteria
+      description: What must be true for this issue to be complete?

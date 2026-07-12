@@ -1,6 +1,46 @@
-# AGENTS.md
+# Repository Instructions
 
-You are helping build a production-quality consulting website.
+## Purpose
+
+This site presents Todd Brunia's AI consulting practice to small and
+mid-sized organizations that want practical help adopting assisted and
+agentic AI workflows. Build trust, explain the offer plainly, and guide a
+qualified visitor toward discussing a real workflow.
+
+## Technical Stack
+
+- Next.js App Router
+- TypeScript
+- Tailwind CSS
+- Vitest and React Testing Library
+- GitHub Actions
+- Vercel
+
+## Before Changing Code
+
+1. Read `docs/product-brief.md`.
+2. Read `docs/design-principles.md`.
+3. Read `docs/content-style-guide.md` for visitor-facing copy.
+4. Inspect existing components before creating new ones.
+5. Confirm that the originating issue has an approved plan and the
+   `approved-for-build` label.
+6. Prefer the smallest change that satisfies the approved acceptance criteria.
+
+## Planning Issues
+
+When asked to plan a GitHub issue, do not modify repository files. Read the
+issue with GitHub CLI, prepare the complete proposal, and post it directly to
+the issue with:
+
+```text
+scripts/post-issue-plan <issue-number>
+```
+
+Pass the Markdown proposal on standard input. Then replace `needs-planning` or
+`changes-requested` with `plan-ready`. The latest plan comment on the issue is
+the source of truth; a plan that exists only in a Codex conversation is not
+approved work. If GitHub authentication or posting fails, stop and report the
+blocker instead of beginning implementation.
 
 ## Engineering Principles
 
@@ -12,6 +52,8 @@ You are helping build a production-quality consulting website.
 - Keep components under 200 lines.
 - Never introduce dependencies without explaining why.
 - Write code that another senior engineer would enjoy maintaining.
+- Reuse existing components and styles when practical.
+- Do not expand the approved scope without returning to the issue for approval.
 
 ## Product Direction
 
@@ -46,3 +88,30 @@ credible, and grounded.
 - Generate qualified leads without overpromising.
 - Use LinkedIn as a credibility signal when appropriate:
   https://linkedin.com/in/tbrunia
+
+## Required Validation
+
+Run:
+
+- `npm run lint`
+- `npm run typecheck`
+- `npm test`
+- `npm run build`
+
+For visual changes, review both desktop and narrow mobile layouts and provide
+before-and-after screenshots or clear visual verification instructions.
+
+## Pull Request Requirements
+
+Include:
+
+- A summary of the visitor-facing change
+- A link to the originating issue
+- Screenshots for visual changes
+- Tests performed
+- Accessibility considerations
+- The Vercel preview URL
+- Known limitations
+
+Never push directly to or merge into `main`. AI may plan, implement, and review,
+but only a human may approve the plan, approve the visual result, and merge.

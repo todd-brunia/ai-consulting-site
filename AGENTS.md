@@ -26,6 +26,22 @@ qualified visitor toward discussing a real workflow.
    `approved-for-build` label.
 6. Prefer the smallest change that satisfies the approved acceptance criteria.
 
+## Planning Issues
+
+When asked to plan a GitHub issue, do not modify repository files. Read the
+issue with GitHub CLI, prepare the complete proposal, and post it directly to
+the issue with:
+
+```text
+scripts/post-issue-plan <issue-number>
+```
+
+Pass the Markdown proposal on standard input. Then replace `needs-planning` or
+`changes-requested` with `plan-ready`. The latest plan comment on the issue is
+the source of truth; a plan that exists only in a Codex conversation is not
+approved work. If GitHub authentication or posting fails, stop and report the
+blocker instead of beginning implementation.
+
 ## Engineering Principles
 
 - Keep the architecture simple.

@@ -11,3 +11,7 @@ details.
 Code changes require an approved issue plan and the `approved-for-build` label.
 Run lint, type checking, tests, and the production build before opening a pull
 request. Never push directly to or merge into `main`.
+
+For planning work, post the final proposal to the GitHub issue with
+`scripts/post-issue-plan <issue-number>`. Do not treat a plan stored only in a
+chat or prompt as approval. If GitHub access is unavailable, stop as blocked.

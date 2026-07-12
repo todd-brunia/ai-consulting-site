@@ -5,19 +5,36 @@ AI-assisted change process from an idea through production.
 
 ## One-Time Repository Setup
 
-1. In GitHub, create the workflow labels listed in
+1. Install GitHub CLI on every machine where Codex will operate and run
+   `gh auth login`. Authorize an account that can read issues, post comments,
+   manage labels, push feature branches, and open pull requests for this
+   repository. Never commit the resulting credential.
+2. Create the workflow labels listed in
    [`docs/github-change-workflow.md`](docs/github-change-workflow.md).
-2. Confirm that GitHub Actions are enabled for the repository.
-3. Open and merge the pipeline setup pull request so the `validate` check runs
+3. Confirm that GitHub Actions are enabled for the repository.
+4. Open and merge the pipeline setup pull request so the `validate` check runs
    at least once.
-4. Protect `main`: require pull requests, require the `validate` check, require
+5. Protect `main`: require pull requests, require the `validate` check, require
    branches to be current, block direct and force pushes, and disallow automated
    bypasses.
-5. In Vercel, confirm that this repository is connected, `main` is the
+6. In Vercel, confirm that this repository is connected, `main` is the
    production branch, and pull requests receive preview deployments.
 
 Account settings can change over time. Use GitHub and Vercel's current UI labels
 when they differ slightly from the language above.
+
+### Current Setup Status
+
+Verified on July 12, 2026:
+
+- GitHub CLI is installed and authenticated locally as `todd-brunia`.
+- Required and optional workflow labels exist.
+- GitHub Actions are enabled.
+- Vercel has produced a Preview deployment for the setup branch and Production
+  deployments for `main`.
+- Branch protection is pending. GitHub does not allow protection on this private
+  repository under its current account plan; upgrade the GitHub plan or make
+  the repository public before completing step 5.
 
 ## 1. Create the Issue
 
@@ -30,25 +47,37 @@ The form applies `needs-planning`. Add an optional classification label such as
 
 ## 2. Ask Codex for a Plan
 
-Give Codex the issue and use the planning prompt in the
+Give Codex the issue number and use the planning prompt in the
 [workflow reference](docs/github-change-workflow.md#planning-prompt). Codex may
-inspect the repository but must not edit it during planning.
+inspect the repository but must not edit it during planning. Codex reads the
+issue with GitHub CLI and posts the finished proposal as a new issue comment by
+running `scripts/post-issue-plan <issue-number>`.
+
+The issue comment—not the Codex prompt or conversation—is the plan of record.
+If Codex cannot post the comment, resolve its GitHub access before continuing.
+Do not manually treat chat output as an approved plan.
 
 Review the proposal for visitor outcome, scope, acceptance criteria, tests,
 accessibility, risks, and factual accuracy. When it is ready, replace
 `needs-planning` with `plan-ready`.
 
 - If revisions are needed, apply `changes-requested` and comment with specific
-  feedback. Return to `plan-ready` after Codex updates the proposal.
+  feedback. Codex posts a complete revised plan as a new comment; do not edit or
+  delete the earlier plan. Return to `plan-ready` after the revision is posted.
 - If the proposal is approved, remove other planning-state labels and apply
   `approved-for-build`. Applying this label is the explicit human authorization
-  to change code.
+  of the latest plan comment. Add a short approval comment if there could be any
+  ambiguity about which revision was approved.
 
 ## 3. Ask Codex to Implement
 
 Use the implementation prompt in the workflow reference. Codex should create a
 branch, apply only the approved plan, run every validation command, and open a
 linked pull request. Change the issue state to `in-progress` while it works.
+
+Before editing, Codex must read the latest plan comment and confirm that the
+issue currently has `approved-for-build`. Conversation history is not a
+substitute for either check.
 
 Do not accept unrelated cleanup in the same PR. Material scope changes return to
 the issue for a revised plan and human approval.

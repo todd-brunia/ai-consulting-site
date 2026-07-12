@@ -44,9 +44,17 @@ Create an implementation proposal containing:
 7. Accessibility considerations
 8. Risks, assumptions, or decisions that require human input
 
-Post the proposal to the issue and wait for explicit approval before changing
-code.
+Use scripts/post-issue-plan with this issue number to post the complete proposal
+as a GitHub issue comment. Replace needs-planning or changes-requested with
+plan-ready after the comment is posted. If GitHub access or posting fails, stop
+and report the blocker. Do not leave the plan only in the Codex conversation.
+Wait for explicit approval before changing code.
 ```
+
+The newest comment containing the `codex-implementation-plan` marker is the plan
+of record. Revisions are new complete comments so the audit history is retained.
+The human applies `approved-for-build` to approve the latest plan. Codex must
+verify that label and reread the latest plan comment before implementation.
 
 ## Implementation Prompt
 
@@ -96,6 +104,11 @@ In GitHub, protect `main` with these settings after the first workflow run:
 - Block direct pushes and force pushes.
 - Do not allow bypasses for automated agents.
 - Keep merge approval and branch deletion under human control.
+
+As of July 12, 2026, these settings are blocked because GitHub does not provide
+branch protection for this private repository under its current account plan.
+Until the plan is upgraded or the repository is made public, the human owner
+must enforce PR-only merges operationally; Codex still may not push to `main`.
 
 ## Vercel Settings to Verify
 

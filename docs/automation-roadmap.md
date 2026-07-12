@@ -9,17 +9,18 @@ and merge authority are permanent controls in every phase.
 ## Current State
 
 Phase 1 is implemented in repository guidance, issue and pull request templates,
-and pull-request CI. Todd manually invokes Codex, changes workflow labels,
-reviews the Vercel preview, and merges approved work.
+and pull-request CI. Todd manually invokes Codex and controls approval labels.
+Codex uses authenticated GitHub CLI access to save plans directly as versioned
+issue comments, then Todd reviews the Vercel preview and merges approved work.
 
 ## Phase 1 — Human-Operated Foundation
 
 **Goal:** Make small AI-assisted changes repeatable and auditable without an
 orchestration service.
 
-**Capabilities:** Structured intake, explicit planning and build gates,
-repository guidance, deterministic PR checks, Vercel previews, and a human
-operating guide.
+**Capabilities:** Structured intake, plans of record stored on issues, explicit
+planning and build gates, repository guidance, deterministic PR checks, Vercel
+previews, and a human operating guide.
 
 **Completion evidence:** Process the “Improve the site header” trial from issue
 through production. Record confusing or repetitive manual steps in that issue.

@@ -28,6 +28,13 @@ describe("Header", () => {
       expect(link).toHaveAttribute("href", "#services");
     });
 
+    const journalLinks = screen.getAllByRole("link", { name: "Journal" });
+    expect(journalLinks).toHaveLength(2);
+    journalLinks.forEach((link) => {
+      expect(navigation).toContainElement(link);
+      expect(link).toHaveAttribute("href", "/journal");
+    });
+
     const contactLinks = screen.getAllByRole("link", {
       name: "Discuss Your Workflow",
     });

@@ -3,6 +3,13 @@
 This guide is primarily for Todd. It describes how to run the human-approved,
 AI-assisted change process from an idea through production.
 
+This repository is public for demonstration purposes and is not currently
+seeking outside contributions. Please do not open unsolicited pull requests.
+The MIT License permits reuse, but it does not imply that proposed changes will
+be reviewed or accepted. Questions about the consulting practice may use the
+contact path on the live site. Suspected vulnerabilities must be reported
+privately according to [`SECURITY.md`](SECURITY.md), never in a public issue.
+
 ## One-Time Repository Setup
 
 1. Install GitHub CLI on every machine where Codex will operate and run
@@ -23,18 +30,13 @@ AI-assisted change process from an idea through production.
 Account settings can change over time. Use GitHub and Vercel's current UI labels
 when they differ slightly from the language above.
 
-### Current Setup Status
+### Public Repository Controls
 
-Verified on July 12, 2026:
-
-- GitHub CLI is installed and authenticated locally as `todd-brunia`.
-- Required and optional workflow labels exist.
-- GitHub Actions are enabled.
-- Vercel has produced a Preview deployment for the setup branch and Production
-  deployments for `main`.
-- Branch protection is pending. GitHub does not allow protection on this private
-  repository under its current account plan; upgrade the GitHub plan or make
-  the repository public before completing step 5.
+The repository must not operate publicly without protection on `main`. Follow
+the [`public repository checklist`](docs/public-repository-checklist.md) for the
+pre-publication audit, visibility-change sequence, repository metadata,
+private vulnerability reporting, and signed-out verification. Recheck these
+controls after any repository ownership, plan, Actions, or Vercel change.
 
 ## 1. Create the Issue
 

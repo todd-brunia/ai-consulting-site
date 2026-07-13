@@ -50,6 +50,8 @@ Create an implementation proposal containing:
 6. Testing and validation plan
 7. Accessibility considerations
 8. Risks, assumptions, or decisions that require human input
+9. Journal impact: entry in this change, follow-up after evidence/merge, or no
+   entry, with one sentence explaining why
 
 Use scripts/post-issue-plan with this issue number to post the complete proposal
 as a GitHub issue comment. Replace needs-planning or changes-requested with
@@ -62,6 +64,11 @@ The newest comment containing the `codex-implementation-plan` marker is the plan
 of record. Revisions are new complete comments so the audit history is retained.
 The human applies `approved-for-build` to approve the latest plan. Codex must
 verify that label and reread the latest plan comment before implementation.
+
+Journal content is visitor-facing scope. Include it in the originating pull
+request only when the approved plan explicitly authorizes the entry. Otherwise,
+open a separate website-content issue and use the same planning and approval
+gates. A journal assessment does not require an entry for every change.
 
 ## Implementation Prompt
 

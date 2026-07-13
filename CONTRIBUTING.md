@@ -61,6 +61,14 @@ criteria without prescribing implementation details unnecessarily. If more than
 one form seems applicable, choose the form that matches the primary outcome and
 note secondary concerns in supporting context.
 
+Every plan should assess journal impact as one of: `entry in this change`,
+`follow-up after evidence or merge`, or `no entry`, with a one-sentence reason.
+An entry is worth considering when a change materially affects the consulting
+offer, demonstrates an AI-assisted workflow or human-control pattern, records a
+useful decision or lesson, or establishes a meaningful public milestone. Routine
+maintenance and changes already explained adequately by technical release notes
+normally do not need an entry.
+
 Every form applies `needs-planning` and a category label. Add optional
 classification labels such as `design`, `content`, `bug`, `accessibility`, or
 `maintenance` when useful.
@@ -129,13 +137,16 @@ PR yourself. Do not delegate approval or merge authority to AI.
 
 After Vercel deploys `main`, open the production site and verify the changed
 behavior. Close the issue if the PR did not close it automatically, remove stale
-workflow labels, and create a follow-up issue for deferred work.
+workflow labels, and create a follow-up issue for deferred work. Revisit any
+promised journal follow-up after production evidence is available. Journal copy
+may ship with the originating change only when its approved plan includes that
+visitor-facing scope; otherwise open a separate website-content issue.
 
 ## Publish a Technical Changelog Release
 
 [GitHub Releases](https://github.com/todd-brunia/ai-consulting-site/releases)
 record meaningful production milestones. They are the technical changelog, not
-a release for every commit or pull request and not a substitute for the planned
+a release for every commit or pull request and not a substitute for the curated
 visitor-facing journal.
 
 While the site is evolving, use `v0.x.y` milestone tags:
@@ -158,6 +169,12 @@ After a change is merged and its `main` deployment is verified:
    review its links and categories. Use GitHub's **Edit release** action to
    clarify generated wording when a pull-request title lacks context; preserve
    the generated links and do not invent historical versions or dates.
+6. Review the changes since the previous release for journal impact and record
+   the decision in the release-related issue, pull request, or release notes.
+   A release can produce no journal entry, one entry, or occasionally several;
+   one entry may also summarize related changes across releases. Create a
+   separate approved website-content issue when the entry was not already in an
+   approved plan.
 
 Release publication is an explicit human action. Automated agents may prepare
 the workflow and release notes, but must not initiate the production release.

@@ -1,7 +1,7 @@
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 
-import { Header, Hero } from "./home-sections";
+import { Footer, Header, Hero } from "./home-sections";
 
 describe("Header", () => {
   it("provides consulting context in the accessible site identity", () => {
@@ -60,5 +60,28 @@ describe("Hero", () => {
     expect(
       screen.getByRole("link", { name: "See Engagement Options" }),
     ).toHaveAttribute("href", "#services");
+  });
+});
+
+describe("Footer", () => {
+  it("links to public work while retaining location and LinkedIn", () => {
+    render(<Footer />);
+
+    expect(screen.getByText("Todd Brunia · Des Moines, Iowa")).toBeInTheDocument();
+
+    const navigation = screen.getByRole("navigation", {
+      name: "Footer links",
+    });
+    expect(navigation).toContainElement(
+      screen.getByRole("link", { name: "Public work" }),
+    );
+    expect(screen.getByRole("link", { name: "Public work" })).toHaveAttribute(
+      "href",
+      "/public-work",
+    );
+    expect(screen.getByRole("link", { name: "LinkedIn" })).toHaveAttribute(
+      "href",
+      "https://linkedin.com/in/tbrunia",
+    );
   });
 });

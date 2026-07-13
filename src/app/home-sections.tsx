@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 import {
   contactHref,
   credentials,
@@ -344,12 +346,23 @@ export function Footer() {
     <footer className="bg-[#172124] px-6 py-8 text-sm text-[#c9d2ce] lg:px-8">
       <div className="mx-auto flex max-w-6xl flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <p>Todd Brunia · Des Moines, Iowa</p>
-        <a
-          href="https://linkedin.com/in/tbrunia"
-          className="transition hover:text-white focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white"
+        <nav
+          aria-label="Footer links"
+          className="flex flex-wrap items-center gap-x-5 gap-y-3"
         >
-          LinkedIn
-        </a>
+          <Link
+            href="/public-work"
+            className="transition hover:text-white focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white"
+          >
+            Public work
+          </Link>
+          <a
+            href="https://linkedin.com/in/tbrunia"
+            className="transition hover:text-white focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white"
+          >
+            LinkedIn
+          </a>
+        </nav>
       </div>
     </footer>
   );

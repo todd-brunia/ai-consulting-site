@@ -1,42 +1,90 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# AI Consulting Site
 
-## Contributing
+This repository contains [Todd Brunia's AI workflow consulting
+site](https://ai-consulting-site-pied.vercel.app). The practice helps small and
+mid-sized organizations evaluate practical AI-enabled workflows through
+bounded experiments, human oversight, and clear risk decisions.
 
-See [`CONTRIBUTING.md`](CONTRIBUTING.md) for the human-approved AI change
-workflow. Future automation opportunities and safeguards are tracked in
-[`docs/automation-roadmap.md`](docs/automation-roadmap.md).
+The repository is public as a demonstration of a human-gated Codex maintenance
+process. It shows how AI can help plan, implement, and review changes without
+giving the AI authority to approve plans, accept visual results, or merge its
+own work. It is an evolving working example, not a claim that software delivery
+can or should be fully autonomous.
 
-## Getting Started
+## How changes move through the repository
 
-First, run the development server:
+Every tracked-file change follows the same auditable path:
+
+1. A structured GitHub issue records the problem and desired outcome.
+2. Codex posts a complete implementation proposal to that issue.
+3. A human reviews the proposal and explicitly approves it.
+4. Codex implements only the approved scope on a feature branch.
+5. GitHub Actions runs linting, type checking, tests, and a production build.
+6. Vercel provides a Preview for human visual and accessibility review when
+   the rendered site changes.
+7. A human decides whether to merge and verifies the Production deployment.
+
+The detailed controls and workflow states are documented in
+[`CONTRIBUTING.md`](CONTRIBUTING.md) and the
+[`GitHub change workflow reference`](docs/github-change-workflow.md).
+
+## Technology
+
+- Next.js App Router
+- React and TypeScript
+- Tailwind CSS
+- Vitest and React Testing Library
+- GitHub Actions
+- Vercel
+
+## Run locally
+
+Use the Node.js version declared in [`.nvmrc`](.nvmrc), then install the locked
+dependencies and start the development server:
 
 ```bash
+npm ci
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000). The homepage route is in
+[`src/app/page.tsx`](src/app/page.tsx), with content and sections split into
+nearby modules.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Validate a change
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Run the same checks required by pull-request CI:
 
-## Learn More
+```bash
+npm run lint
+npm run typecheck
+npm test
+npm run build
+```
 
-To learn more about Next.js, take a look at the following resources:
+## Project guidance
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- [`docs/product-brief.md`](docs/product-brief.md) defines the audience,
+  services, desired visitor action, and claim boundaries.
+- [`docs/design-principles.md`](docs/design-principles.md) defines the visual
+  and accessibility direction.
+- [`docs/content-style-guide.md`](docs/content-style-guide.md) defines the
+  grounded, low-hype writing style.
+- [`docs/automation-roadmap.md`](docs/automation-roadmap.md) records future
+  automation opportunities and permanent human controls.
+- [`docs/public-repository-checklist.md`](docs/public-repository-checklist.md)
+  records the safety and settings checks for public operation.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Contributions and security
 
-## Deploy on Vercel
+This repository is public for demonstration purposes. It is not currently
+seeking outside contributions; see [`CONTRIBUTING.md`](CONTRIBUTING.md) for the
+maintenance policy.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Please report suspected vulnerabilities privately by following
+[`SECURITY.md`](SECURITY.md). Do not include sensitive details in a public
+issue.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## License
+
+The source code and documentation are available under the [MIT License](LICENSE).

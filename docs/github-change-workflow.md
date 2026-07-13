@@ -104,7 +104,7 @@ recommended corrections.
 
 ## Protected Branch Settings
 
-In GitHub, protect `main` with these settings after the first workflow run:
+In GitHub, protect `main` with these settings:
 
 - Require a pull request before merging.
 - Require the `validate` status check and require branches to be current.
@@ -112,10 +112,10 @@ In GitHub, protect `main` with these settings after the first workflow run:
 - Do not allow bypasses for automated agents.
 - Keep merge approval and branch deletion under human control.
 
-As of July 12, 2026, these settings are blocked because GitHub does not provide
-branch protection for this private repository under its current account plan.
-Until the plan is upgraded or the repository is made public, the human owner
-must enforce PR-only merges operationally; Codex still may not push to `main`.
+These settings are mandatory for public operation. If protection becomes
+unavailable or is removed, pause implementation and restore it before accepting
+another change. The one-time release sequence and ongoing verification are in
+the [`public repository checklist`](public-repository-checklist.md).
 
 ## Vercel Settings to Verify
 

@@ -131,6 +131,37 @@ After Vercel deploys `main`, open the production site and verify the changed
 behavior. Close the issue if the PR did not close it automatically, remove stale
 workflow labels, and create a follow-up issue for deferred work.
 
+## Publish a Technical Changelog Release
+
+[GitHub Releases](https://github.com/todd-brunia/ai-consulting-site/releases)
+record meaningful production milestones. They are the technical changelog, not
+a release for every commit or pull request and not a substitute for the planned
+visitor-facing journal.
+
+While the site is evolving, use `v0.x.y` milestone tags:
+
+- Start with `v0.1.0` at the current production `main` commit.
+- Increment the patch version for a normal production milestone.
+- Increment the minor version for a notable new site capability.
+- Reserve `v1.0.0` or another major increment for an intentionally declared
+  major release. These versions communicate site milestones, not compatibility
+  guarantees for a public API.
+
+After a change is merged and its `main` deployment is verified:
+
+1. Open **Actions**, select **Publish release**, and choose **Run workflow**.
+2. Confirm the selected branch is `main`.
+3. Enter the next `vMAJOR.MINOR.PATCH` tag and a short, descriptive title.
+4. Run the workflow. It rejects malformed or existing tags and creates a
+   standard GitHub Release with notes generated from merged pull requests.
+5. Open the new release, verify that it targets the production commit, and
+   review its links and categories. Use GitHub's **Edit release** action to
+   clarify generated wording when a pull-request title lacks context; preserve
+   the generated links and do not invent historical versions or dates.
+
+Release publication is an explicit human action. Automated agents may prepare
+the workflow and release notes, but must not initiate the production release.
+
 ## Blocked and Exceptional Work
 
 Apply `blocked` when progress requires a missing decision, permission, account

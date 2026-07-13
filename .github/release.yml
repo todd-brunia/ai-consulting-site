@@ -1,0 +1,32 @@
+changelog:
+  exclude:
+    labels:
+      - duplicate
+      - invalid
+      - question
+      - wontfix
+  categories:
+    - title: Website experience
+      labels:
+        - website
+        - content
+        - design
+        - feature
+        - accessibility
+        - seo
+    - title: Application engineering
+      labels:
+        - engineering
+        - bug
+        - enhancement
+    - title: Delivery and workflow
+      labels:
+        - devops
+        - workflow
+    - title: Documentation and maintenance
+      labels:
+        - documentation
+        - maintenance
+    - title: Other changes
+      labels:
+        - "*"

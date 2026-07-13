@@ -28,6 +28,11 @@ The detailed controls and workflow states are documented in
 [`CONTRIBUTING.md`](CONTRIBUTING.md) and the
 [`GitHub change workflow reference`](docs/github-change-workflow.md).
 
+The repository's [GitHub Releases](https://github.com/todd-brunia/ai-consulting-site/releases)
+provide a technical changelog of meaningful production milestones. This is
+separate from the planned visitor-facing journal about the broader journey and
+lessons behind the site.
+
 ## Technology
 
 - Next.js App Router

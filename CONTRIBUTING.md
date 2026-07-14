@@ -86,12 +86,14 @@ If Codex cannot post the comment, resolve its GitHub access before continuing.
 Do not manually treat chat output as an approved plan.
 
 Review the proposal for visitor outcome, scope, acceptance criteria, tests,
-accessibility, risks, and factual accuracy. When it is ready, replace
-`needs-planning` with `plan-ready`.
+accessibility, risks, and factual accuracy. Plans should prioritize important
+issue-specific decisions and omit generic detail. When the plan is ready,
+replace `needs-planning` with `plan-ready`.
 
 - If revisions are needed, apply `changes-requested` and comment with specific
-  feedback. Codex posts a complete revised plan as a new comment; do not edit or
-  delete the earlier plan. Return to `plan-ready` after the revision is posted.
+  feedback. Codex responds only to that feedback so the issue can serve as a
+  planning conversation. Do not edit or delete earlier comments. Ask for a
+  consolidated replacement only when useful, then return to `plan-ready`.
 - If the proposal is approved, remove other planning-state labels and apply
   `approved-for-build`. Applying this label is the explicit human authorization
   of the latest plan comment. Add a short approval comment if there could be any
@@ -103,9 +105,40 @@ Use the implementation prompt in the workflow reference. Codex should create a
 branch, apply only the approved plan, run every validation command, and open a
 linked pull request. Change the issue state to `in-progress` while it works.
 
-Before editing, Codex must read the latest plan comment and confirm that the
-issue currently has `approved-for-build`. Conversation history is not a
-substitute for either check.
+Before editing, Codex must confirm `approved-for-build` and read the marked base
+plan plus all subsequent planning discussion that existed when it was applied.
+Later comments do not silently expand the approved scope.
+
+### Enable label-triggered automation
+
+The committed workflow is inert until a repository owner completes this setup:
+
+1. Create a dedicated OpenAI API project and key with appropriate spend limits
+   and alerts. Add the key as the Actions secret `OPENAI_API_KEY`.
+2. Create a dedicated GitHub App installed only on this repository. Grant it
+   repository Contents, Issues, and Pull requests read/write access, but no
+   administration or Actions-management permission. Store its ID as
+   `CODEX_AUTOMATION_APP_ID` and private key as the Actions secret
+   `CODEX_AUTOMATION_APP_PRIVATE_KEY`. Its short-lived token pushes the branch
+   and opens the PR so normal PR checks and Vercel integration can run.
+3. Set `CODEX_ALLOWED_ACTORS` to a comma-separated list of trusted GitHub users
+   (initially `todd-brunia`) and set `CODEX_AUTOMATION_ENABLED` to `true` only
+   when rollout is authorized.
+4. Keep the repository's default Actions token permissions restricted. The
+   Codex generation job receives read access only, while the publisher receives
+   the short-lived App token but never the OpenAI key.
+5. Confirm `main` protection and Vercel settings still prohibit automated merge
+   or production deployment.
+
+Rotate or revoke the OpenAI key or GitHub App key if exposure is suspected. Set
+`CODEX_AUTOMATION_ENABLED` to `false` for the fastest non-destructive kill
+switch. Workflow artifacts are retained for three days and must not contain
+credentials, model traces, or real private data.
+
+Roll out planning first. On disposable issues, verify initial planning, focused
+revision, duplicate replay, unauthorized-actor rejection, implementation draft
+creation, and forced-failure recovery. Record the run and PR links on the Phase
+2 issue before declaring the roadmap phase complete.
 
 Do not accept unrelated cleanup in the same PR. Material scope changes return to
 the issue for a revised plan and human approval.

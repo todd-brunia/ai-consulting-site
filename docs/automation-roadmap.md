@@ -73,8 +73,8 @@ as the controlled trial and evidence index. The trial demonstrated:
 - A [human-approved implementation run](https://github.com/todd-brunia/ai-consulting-site/actions/runs/29376653852)
   for the documentation-only change, based on the owner's
   [evidence summary](https://github.com/todd-brunia/ai-consulting-site/issues/26#issuecomment-4975068419).
-  The resulting draft pull request is linked from issue #26 and remains subject
-  to normal validation, preview, human review, and merge controls.
+  The resulting [draft pull request #27](https://github.com/todd-brunia/ai-consulting-site/pull/27)
+  remains subject to normal validation, preview, human review, and merge controls.
 
 The trial did not apply its own approval, merge, push to `main`, apply
 `preview-ready`, publish a release, or deploy. Production automation settings

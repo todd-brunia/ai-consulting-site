@@ -52,12 +52,35 @@ deployment credentials to implementation jobs.
 unapproved issues cannot start implementation; failures produce an actionable
 GitHub-visible state; and only a human can apply build approval or merge.
 
-**Implementation status:** Issue #19 prepares the official Codex GitHub Action
-workflow, credential-separated publishing jobs, concise conversational
-planning, replay protection, and operator guidance. Keep the automation disabled
-until the repository secret and allowlist are configured and the documented
-planning, implementation, replay, unauthorized-trigger, and failure-recovery
-trials succeed. Add those evidence links here before marking Phase 2 complete.
+**Implementation status:** Complete. Issue #19 and PR #20 established the
+official Codex GitHub Action workflow, credential-separated publishing jobs,
+concise conversational planning, replay protection, and operator guidance.
+[Issue #26](https://github.com/todd-brunia/ai-consulting-site/issues/26) served
+as the controlled trial and evidence index. The trial demonstrated:
+
+- [Initial planning](https://github.com/todd-brunia/ai-consulting-site/actions/runs/29375671314)
+  and [focused plan revision](https://github.com/todd-brunia/ai-consulting-site/actions/runs/29375845544),
+  with one [marked plan](https://github.com/todd-brunia/ai-consulting-site/issues/26#issuecomment-4974945482)
+  and one [focused amendment](https://github.com/todd-brunia/ai-consulting-site/issues/26#issuecomment-4974962486).
+- Planning and revision replays that skipped Codex without duplicating comments
+  or other output.
+- A [controlled state-conflict failure](https://github.com/todd-brunia/ai-consulting-site/actions/runs/29376280473)
+  that stopped before Codex, created no branch or pull request, and reported an
+  actionable failure. Clearing the conflict returned the issue to
+  `plan-ready`, demonstrating recovery.
+- An [unauthorized manual trigger](https://github.com/todd-brunia/ai-consulting-site/actions/runs/29376489996)
+  that skipped Codex and left issue state unchanged.
+- A [human-approved implementation run](https://github.com/todd-brunia/ai-consulting-site/actions/runs/29376653852)
+  for the documentation-only change, based on the owner's
+  [evidence summary](https://github.com/todd-brunia/ai-consulting-site/issues/26#issuecomment-4975068419).
+  The resulting [draft pull request #27](https://github.com/todd-brunia/ai-consulting-site/pull/27)
+  remains subject to normal validation, preview, human review, and merge controls.
+
+The trial did not apply its own approval, merge, push to `main`, apply
+`preview-ready`, publish a release, or deploy. Production automation settings
+were restored after the trial. Node.js 20 action-runtime warnings observed
+during the runs remain follow-up maintenance and were not addressed as part of
+the validation.
 
 ## Phase 3 — Automated Quality and Improvement Intake
 

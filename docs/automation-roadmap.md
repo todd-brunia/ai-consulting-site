@@ -52,6 +52,13 @@ deployment credentials to implementation jobs.
 unapproved issues cannot start implementation; failures produce an actionable
 GitHub-visible state; and only a human can apply build approval or merge.
 
+**Implementation status:** Issue #19 prepares the official Codex GitHub Action
+workflow, credential-separated publishing jobs, concise conversational
+planning, replay protection, and operator guidance. Keep the automation disabled
+until the repository secret and allowlist are configured and the documented
+planning, implementation, replay, unauthorized-trigger, and failure-recovery
+trials succeed. Add those evidence links here before marking Phase 2 complete.
+
 ## Phase 3 — Automated Quality and Improvement Intake
 
 **Goal:** Increase review confidence and let AI propose evidence-based work.

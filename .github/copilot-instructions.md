@@ -15,3 +15,6 @@ request. Never push directly to or merge into `main`.
 For planning work, post the final proposal to the GitHub issue with
 `scripts/post-issue-plan <issue-number>`. Do not treat a plan stored only in a
 chat or prompt as approval. If GitHub access is unavailable, stop as blocked.
+Keep initial plans concise and issue-specific. When changes are requested,
+respond only to the new feedback unless the human explicitly asks for a
+consolidated replacement plan.

@@ -32,18 +32,25 @@ qualified visitor toward discussing a real workflow.
 ## Planning Issues
 
 When asked to plan a GitHub issue, do not modify repository files. Read the
-issue with GitHub CLI, prepare the complete proposal, and post it directly to
-the issue with:
+issue with GitHub CLI, prepare a concise proposal focused on issue-specific
+scope, decisions, acceptance criteria, validation, and material risks, and post
+it directly to the issue with:
 
 ```text
 scripts/post-issue-plan <issue-number>
 ```
 
-Pass the Markdown proposal on standard input. Then replace `needs-planning` or
-`changes-requested` with `plan-ready`. The latest plan comment on the issue is
-the source of truth; a plan that exists only in a Codex conversation is not
-approved work. If GitHub authentication or posting fails, stop and report the
-blocker instead of beginning implementation.
+Pass the Markdown proposal on standard input. Then replace `needs-planning` with
+`plan-ready`. A plan that exists only in a Codex conversation is not approved
+work. If GitHub authentication or posting fails, stop and report the blocker
+instead of beginning implementation.
+
+When `changes-requested` is present, respond only to the new feedback in an
+issue comment. Do not repeat the complete plan unless the human explicitly asks
+for a consolidated replacement. The marked base plan and subsequent planning
+discussion form the review record; applying `approved-for-build` freezes that
+conversation as the approved scope. After addressing feedback, replace
+`changes-requested` with `plan-ready`.
 
 ## Engineering Principles
 

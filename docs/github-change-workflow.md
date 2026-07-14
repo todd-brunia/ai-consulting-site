@@ -41,7 +41,7 @@ separate `done` label is not required.
 ```text
 Analyze this issue but do not modify the repository yet.
 
-Create an implementation proposal containing:
+Create a concise implementation proposal containing:
 1. Your understanding of the problem
 2. The intended visitor or business outcome
 3. Recommended design and content changes
@@ -60,10 +60,35 @@ and report the blocker. Do not leave the plan only in the Codex conversation.
 Wait for explicit approval before changing code.
 ```
 
-The newest comment containing the `codex-implementation-plan` marker is the plan
-of record. Revisions are new complete comments so the audit history is retained.
-The human applies `approved-for-build` to approve the latest plan. Codex must
-verify that label and reread the latest plan comment before implementation.
+The newest comment containing the `codex-implementation-plan` marker starts the
+plan of record. Later owner feedback and focused Codex amendments remain part of
+that record; revisions do not need to repeat the entire plan. A human may ask
+for a consolidated replacement when that would make approval clearer. Applying
+`approved-for-build` freezes the marked plan and subsequent planning discussion
+as the approved scope. Codex must verify the label and reread that frozen record
+before implementation.
+
+## Label-triggered automation
+
+When repository automation is enabled, trusted human label changes start three
+stages:
+
+| Label | Automated result |
+| --- | --- |
+| `needs-planning` | Codex posts one concise marked plan and applies `plan-ready`. |
+| `changes-requested` | Codex answers only the new feedback and returns the issue to `plan-ready`. |
+| `approved-for-build` | Codex prepares a validated patch; a separate job opens one draft PR and applies `in-progress`. |
+
+The OpenAI job has no GitHub write credential. The publishing job has no OpenAI
+key and uses a short-lived, repository-scoped GitHub App token so its draft PR
+triggers normal checks. Only allowlisted humans with current write-level
+repository permission can trigger work, and issue text is always treated as
+untrusted input. Replayed events use planning fingerprints to no-op safely.
+Failures apply `blocked` and link the workflow run; resolve the cause, remove
+`blocked`, and reapply the stage label.
+
+Automation does not apply `approved-for-build` or `preview-ready`, merge, push
+to `main`, publish a release, or deploy. Those remain human decisions.
 
 Journal content is visitor-facing scope. Include it in the originating pull
 request only when the approved plan explicitly authorizes the entry. Otherwise,

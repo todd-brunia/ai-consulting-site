@@ -87,6 +87,25 @@ untrusted input. Replayed events use planning fingerprints to no-op safely.
 Failures apply `blocked` and link the workflow run; resolve the cause, remove
 `blocked`, and reapply the stage label.
 
+Codex generations use an explicit stage policy:
+
+| Stage | Model | Reasoning effort |
+| --- | --- | --- |
+| Plan and revise | `gpt-5.6-luna` | Low |
+| Implement | `gpt-5.6-terra` | Medium |
+
+This policy controls cost without weakening the implementation default. If a
+planning result is inadequate, escalate first to Terra at low or medium effort.
+Sol/high is reserved for an exceptional retry after inspecting the lower-cost
+result; it requires a separately reviewed workflow change and is never exposed
+as a label or dispatch option. Restore the defaults after that retry.
+
+For the first three to five representative post-merge issues, record the stage,
+model, result quality, retries, and OpenAI project usage in issue #30. Evaluate
+quality and retry rate alongside project usage before making another model
+change; Actions duration is not a cost measure. Recheck official model
+availability and pricing whenever the policy changes.
+
 Automation does not apply `approved-for-build` or `preview-ready`, merge, push
 to `main`, publish a release, or deploy. Those remain human decisions.
 

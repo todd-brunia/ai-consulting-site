@@ -130,6 +130,26 @@ The committed workflow is inert until a repository owner completes this setup:
 5. Confirm `main` protection and Vercel settings still prohibit automated merge
    or production deployment.
 
+### Codex model policy
+
+The automated stages use explicit, cost-conscious defaults: planning and plan
+revision use `gpt-5.6-luna` with low reasoning effort, while implementation
+uses `gpt-5.6-terra` with medium effort. The workflow does not offer a Sol/high
+option.
+
+If planning quality is inadequate, first retry with Terra at low or medium
+effort. Use Sol/high only for an exceptional retry after reviewing the weaker
+result, and require a separately reviewed workflow change rather than adding a
+dispatch option. Revert that temporary change after the retry.
+
+After rollout, record the stage, selected model, result quality, retry count,
+and OpenAI project usage for three to five representative issues in issue #30.
+Use project usage rather than Actions duration to assess cost. Before changing
+the defaults again, compare quality and retries as well as usage, and recheck
+current model availability and pricing in the official OpenAI documentation.
+The repository owner must also verify in the OpenAI dashboard whether each
+project budget control is an alert or a hard spending stop.
+
 Rotate or revoke the OpenAI key or GitHub App key if exposure is suspected. Set
 `CODEX_AUTOMATION_ENABLED` to `false` for the fastest non-destructive kill
 switch. Workflow artifacts are retained for three days and must not contain

@@ -8,6 +8,15 @@ export type JournalEntry = {
 
 export const journalEntries = [
   {
+    id: "automated-human-gated-ai-workflow",
+    date: "2026-07-14",
+    title: "Automated a human-gated AI workflow",
+    problemOrOpportunity:
+      "The site had a careful AI-assisted change process, but planning, implementation, recovery, and cost control still required repetitive manual coordination.",
+    accomplished:
+      "I built and tested a label-triggered workflow that can plan changes and prepare draft pull requests after explicit AI authorization, while keeping plan approval and merge authority with a person. It also includes failure recovery and uses lower-cost models for routine planning and implementation.",
+  },
+  {
     id: "started-the-journal",
     date: "2026-07-13",
     title: "Started the journal",

@@ -29,6 +29,12 @@ qualified visitor toward discussing a real workflow.
    `approved-for-build` label.
 7. Prefer the smallest change that satisfies the approved acceptance criteria.
 
+Manual implementation begins after `approved-for-build`: use a non-reserved
+branch, open a pull request linked to the issue, and advance the issue to
+`in-progress`. AI implementation requires a second, explicit
+`approved-for-ai-build` label after general approval. Reserve
+`codex/issue-<number>` branches for automation.
+
 ## Planning Issues
 
 When asked to plan a GitHub issue, do not modify repository files. Read the

@@ -32,7 +32,7 @@ jobs:
       github.event_name == 'workflow_dispatch' ||
       github.event.label.name == 'needs-planning' ||
       github.event.label.name == 'changes-requested' ||
-      github.event.label.name == 'approved-for-build'
+      github.event.label.name == 'approved-for-ai-build'
     runs-on: ubuntu-latest
     timeout-minutes: 30
     permissions:
@@ -420,15 +420,19 @@ jobs:
                 body,
               });
             }
-            const labelForStage = { plan: "needs-planning", revise: "changes-requested", implement: "approved-for-build" }[process.env.STAGE] || process.env.STAGE;
-            try {
-              await github.rest.issues.removeLabel({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                issue_number: issueNumber,
-                name: labelForStage,
-              });
-            } catch (error) {
-              if (error.status !== 404) throw error;
+            const transition = helpers.failureTransitionFor(process.env.STAGE);
+            for (const name of transition.remove) {
+              try {
+                await github.rest.issues.removeLabel({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: issueNumber,
+                  name,
+                });
+              } catch (error) {
+                if (error.status !== 404) throw error;
+              }
             }
-            await github.rest.issues.addLabels({ owner: context.repo.owner, repo: context.repo.repo, issue_number: issueNumber, labels: ["blocked"] });
+            for (const name of transition.add) {
+              await github.rest.issues.addLabels({ owner: context.repo.owner, repo: context.repo.repo, issue_number: issueNumber, labels: [name] });
+            }

@@ -6,6 +6,7 @@ import {
   PLAN_MARKER,
   buildContext,
   evaluateTrigger,
+  failureTransitionFor,
   marker,
   planningSnapshot,
   transitionFor,
@@ -40,6 +41,13 @@ describe("workflow state", () => {
     );
     expect(workflow).not.toMatch(/model:.*gpt-5\.6-sol/);
     expect(workflow).not.toMatch(/effort:.*high/);
+  });
+
+  it("uses the AI-specific label as the only implementation event", () => {
+    const workflow = readFileSync(".github/workflows/codex-label-automation.yml", "utf8");
+
+    expect(workflow).toContain("github.event.label.name == 'approved-for-ai-build'");
+    expect(workflow).not.toContain("github.event.label.name == 'approved-for-build'");
   });
 
   it("allows a trusted planning trigger and produces a stable marker", () => {
@@ -83,7 +91,10 @@ describe("workflow state", () => {
       actorType: "User",
       allowedActors: ["todd-brunia"],
       permission: "admin",
-      issue: { ...issue, labels: [{ name: "approved-for-build" }] },
+      issue: {
+        ...issue,
+        labels: [{ name: "approved-for-build" }, { name: "approved-for-ai-build" }],
+      },
       comments: [],
       requestedStage: "implement",
     };
@@ -94,10 +105,77 @@ describe("workflow state", () => {
         comments: [plan],
         issue: {
           ...base.issue,
-          labels: [{ name: "approved-for-build" }, { name: "changes-requested" }],
+          labels: [
+            { name: "approved-for-build" },
+            { name: "approved-for-ai-build" },
+            { name: "changes-requested" },
+          ],
         },
       }),
     ).toMatchObject({ action: "block" });
+  });
+
+  it("requires both approvals before running implementation", () => {
+    const base = {
+      enabled: true,
+      actor: "todd-brunia",
+      actorType: "User",
+      allowedActors: ["todd-brunia"],
+      permission: "admin",
+      issue: { ...issue, labels: [{ name: "approved-for-ai-build" }] },
+      comments: [plan],
+      requestedStage: "implement",
+    };
+
+    expect(evaluateTrigger(base)).toMatchObject({ action: "block" });
+    expect(
+      evaluateTrigger({
+        ...base,
+        issue: {
+          ...base.issue,
+          labels: [{ name: "approved-for-build" }, { name: "approved-for-ai-build" }],
+        },
+      }),
+    ).toMatchObject({ action: "run" });
+  });
+
+  it("skips a replayed or stale AI implementation trigger", () => {
+    const implementationIssue = {
+      ...issue,
+      labels: [{ name: "approved-for-build" }, { name: "approved-for-ai-build" }],
+    };
+    const context = buildContext({
+      issue: implementationIssue,
+      comments: [plan],
+      stage: "implement",
+    });
+    const input = {
+      enabled: true,
+      actor: "todd-brunia",
+      actorType: "User",
+      allowedActors: ["todd-brunia"],
+      permission: "admin",
+      issue: implementationIssue,
+      comments: [
+        plan,
+        {
+          id: 2,
+          user: { login: "github-actions[bot]" },
+          author_association: "NONE",
+          body: context.marker,
+          created_at: "2026-07-14T00:01:00Z",
+        },
+      ],
+      requestedStage: "implement",
+    };
+
+    expect(evaluateTrigger(input)).toMatchObject({ action: "skip" });
+    expect(
+      evaluateTrigger({
+        ...input,
+        issue: { ...implementationIssue, labels: [{ name: "approved-for-build" }] },
+      }),
+    ).toMatchObject({ action: "skip" });
   });
 
   it("freezes the marked plan and later planning discussion", () => {
@@ -160,5 +238,13 @@ describe("workflow state", () => {
       add: ["plan-ready"],
     });
     expect(marker("plan", 19, "abc")).toContain("plan:issue-19:abc");
+    expect(transitionFor("implement")).toEqual({
+      remove: ["approved-for-build", "approved-for-ai-build", "plan-ready", "blocked"],
+      add: ["in-progress"],
+    });
+    expect(failureTransitionFor("implement")).toEqual({
+      remove: ["approved-for-ai-build"],
+      add: ["blocked"],
+    });
   });
 });

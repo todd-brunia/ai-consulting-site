@@ -57,7 +57,7 @@ jobs:
 
       - name: Validate actor, state, and idempotency
         id: context
-        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         env:
           AUTOMATION_ENABLED: ${{ vars.CODEX_AUTOMATION_ENABLED }}
           ALLOWED_ACTORS: ${{ vars.CODEX_ALLOWED_ACTORS }}
@@ -225,7 +225,7 @@ jobs:
           name: codex-result-${{ needs.generate.outputs.issue_number }}-${{ needs.generate.outputs.fingerprint }}
 
       - name: Post response and advance state
-        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         env:
           ISSUE_NUMBER: ${{ needs.generate.outputs.issue_number }}
           STAGE: ${{ needs.generate.outputs.stage }}
@@ -329,7 +329,7 @@ jobs:
           git push origin "HEAD:refs/heads/$BRANCH_NAME"
 
       - name: Open draft pull request and advance issue
-        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         env:
           ISSUE_NUMBER: ${{ needs.generate.outputs.issue_number }}
           BRANCH_NAME: ${{ needs.generate.outputs.branch }}
@@ -384,7 +384,7 @@ jobs:
       issues: write
     steps:
       - name: Post sanitized failure status
-        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         env:
           ISSUE_NUMBER: ${{ needs.generate.outputs.issue_number || inputs.issue_number || github.event.issue.number }}
           STAGE: ${{ needs.generate.outputs.stage || inputs.stage || github.event.label.name }}

@@ -7,6 +7,7 @@ export const STATE_LABELS = [
   "plan-ready",
   "changes-requested",
   "approved-for-build",
+  "approved-for-ai-build",
   "in-progress",
   "preview-ready",
   "blocked",
@@ -15,7 +16,7 @@ export const STATE_LABELS = [
 export const STAGES = {
   "needs-planning": "plan",
   "changes-requested": "revise",
-  "approved-for-build": "implement",
+  "approved-for-ai-build": "implement",
 };
 
 function stableJson(value) {
@@ -121,8 +122,13 @@ export function evaluateTrigger({
     return { action: "skip", reason: "The requested stage label is no longer present." };
   }
 
-  if (requestedStage === "implement" && labels.includes("changes-requested")) {
-    return { action: "block", reason: "Planning changes are still requested." };
+  if (requestedStage === "implement") {
+    if (!labels.includes("approved-for-build")) {
+      return { action: "block", reason: "Human approval for the documented plan is required." };
+    }
+    if (labels.includes("changes-requested")) {
+      return { action: "block", reason: "Planning changes are still requested." };
+    }
   }
 
   let context;
@@ -174,5 +180,13 @@ export function transitionFor(stage) {
   if (stage === "plan" || stage === "revise") {
     return { remove: ["needs-planning", "changes-requested", "blocked"], add: ["plan-ready"] };
   }
-  return { remove: ["approved-for-build", "plan-ready", "blocked"], add: ["in-progress"] };
+  return {
+    remove: ["approved-for-build", "approved-for-ai-build", "plan-ready", "blocked"],
+    add: ["in-progress"],
+  };
+}
+
+export function failureTransitionFor(stage) {
+  const triggerLabel = Object.entries(STAGES).find(([, value]) => value === stage)?.[0];
+  return { remove: triggerLabel ? [triggerLabel] : [], add: ["blocked"] };
 }

@@ -12,7 +12,8 @@ Create these labels in GitHub before running the first trial:
 | `needs-planning` | The request needs an AI implementation proposal. |
 | `plan-ready` | The proposal is ready for human review. |
 | `changes-requested` | Human feedback must be incorporated before approval. |
-| `approved-for-build` | A human has authorized the documented plan. |
+| `approved-for-build` | A human has authorized the documented plan for manual or AI implementation. |
+| `approved-for-ai-build` | A human has explicitly authorized Codex to implement the approved plan. |
 | `in-progress` | Implementation is underway. |
 | `preview-ready` | CI and the preview are ready for human review. |
 | `blocked` | Progress requires a decision, permission, or external change. |
@@ -77,7 +78,7 @@ stages:
 | --- | --- |
 | `needs-planning` | Codex posts one concise marked plan and applies `plan-ready`. |
 | `changes-requested` | Codex answers only the new feedback and returns the issue to `plan-ready`. |
-| `approved-for-build` | Codex prepares a validated patch; a separate job opens one draft PR and applies `in-progress`. |
+| `approved-for-ai-build` | Codex prepares a validated patch only when `approved-for-build` is also present; a separate job opens one draft PR and applies `in-progress`. |
 
 The OpenAI job has no GitHub write credential. The publishing job has no OpenAI
 key and uses a short-lived, repository-scoped GitHub App token so its draft PR
@@ -85,7 +86,9 @@ triggers normal checks. Only allowlisted humans with current write-level
 repository permission can trigger work, and issue text is always treated as
 untrusted input. Replayed events use planning fingerprints to no-op safely.
 Failures apply `blocked` and link the workflow run; resolve the cause, remove
-`blocked`, and reapply the stage label.
+`blocked`, and reapply the stage label. An implementation failure removes only
+`approved-for-ai-build`, preserving `approved-for-build` for a deliberate retry.
+Successful AI implementation removes both approval labels.
 
 Codex generations use an explicit stage policy:
 
@@ -108,6 +111,16 @@ availability and pricing whenever the policy changes.
 
 Automation does not apply `approved-for-build` or `preview-ready`, merge, push
 to `main`, publish a release, or deploy. Those remain human decisions.
+
+For manual implementation, apply `approved-for-build`, create a non-
+`codex/issue-*` branch, open a pull request linked to the issue, and move the
+issue to `in-progress`. Applying general approval alone never starts Codex.
+For AI implementation, apply `approved-for-ai-build` after general approval;
+the `codex/issue-<number>` branch namespace is reserved for that automation.
+Create the new label before enabling this workflow change. Workflow changes take
+effect only for new runs after merging to the default branch and do not alter an
+already-running job. Already-approved issues can proceed manually; AI work needs
+the new label after rollout.
 
 Journal content is visitor-facing scope. Include it in the originating pull
 request only when the approved plan explicitly authorizes the entry. Otherwise,

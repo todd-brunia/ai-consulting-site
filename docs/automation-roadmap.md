@@ -38,9 +38,11 @@ revealed.
 
 **Goal:** Automate coordination while preserving both human gates.
 
-**Proposed capabilities:** React to `needs-planning` and `approved-for-build`,
-post a plan, create an implementation branch and draft PR, advance state labels,
-and report `blocked` with a useful reason.
+**Proposed capabilities:** React to `needs-planning` and the explicit
+`approved-for-ai-build` authorization, post a plan, create an implementation
+branch and draft PR, advance state labels, and report `blocked` with a useful
+reason. `approved-for-build` remains the universal human plan-approval gate for
+manual or AI work.
 
 **Before building:** Evaluate supported GitHub/Codex integration options and
 document authentication, cost, and maintenance. Design least-privilege tokens,

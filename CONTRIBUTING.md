@@ -96,14 +96,23 @@ replace `needs-planning` with `plan-ready`.
   consolidated replacement only when useful, then return to `plan-ready`.
 - If the proposal is approved, remove other planning-state labels and apply
   `approved-for-build`. Applying this label is the explicit human authorization
-  of the latest plan comment. Add a short approval comment if there could be any
-  ambiguity about which revision was approved.
+  of the latest plan comment for either implementation path. Add a short
+  approval comment if there could be any ambiguity about which revision was
+  approved.
 
 ## 3. Ask Codex to Implement
 
-Use the implementation prompt in the workflow reference. Codex should create a
-branch, apply only the approved plan, run every validation command, and open a
-linked pull request. Change the issue state to `in-progress` while it works.
+Choose one implementation path after plan approval:
+
+- **Manual:** Create a non-`codex/issue-*` branch, apply only the approved
+  plan, run every validation command, open a linked pull request, and change
+  the issue state to `in-progress`. Applying `approved-for-build` alone never
+  invokes Codex.
+- **AI:** Apply `approved-for-ai-build` only after `approved-for-build` is
+  present. This explicitly authorizes label-triggered Codex implementation;
+  `codex/issue-<number>` branch names are reserved for that automation.
+
+Use the implementation prompt in the workflow reference for manual Codex work.
 
 Before editing, Codex must confirm `approved-for-build` and read the marked base
 plan plus all subsequent planning discussion that existed when it was applied.
@@ -121,7 +130,9 @@ The committed workflow is inert until a repository owner completes this setup:
    `CODEX_AUTOMATION_APP_ID` and private key as the Actions secret
    `CODEX_AUTOMATION_APP_PRIVATE_KEY`. Its short-lived token pushes the branch
    and opens the PR so normal PR checks and Vercel integration can run.
-3. Set `CODEX_ALLOWED_ACTORS` to a comma-separated list of trusted GitHub users
+3. Create the `approved-for-ai-build` label with the description “A human has
+   explicitly authorized Codex to implement the approved plan.” Then set
+   `CODEX_ALLOWED_ACTORS` to a comma-separated list of trusted GitHub users
    (initially `todd-brunia`) and set `CODEX_AUTOMATION_ENABLED` to `true` only
    when rollout is authorized.
 4. Keep the repository's default Actions token permissions restricted. The
@@ -161,7 +172,10 @@ creation, and forced-failure recovery. Record the run and PR links on the Phase
 2 issue before declaring the roadmap phase complete.
 
 Do not accept unrelated cleanup in the same PR. Material scope changes return to
-the issue for a revised plan and human approval.
+the issue for a revised plan and human approval. Workflow configuration changes
+take effect only for new runs after they merge to the default branch; they do
+not change an already-running job. Already-approved issues may proceed manually,
+while AI implementation requires the new AI-specific label after rollout.
 
 ## 4. Review the Pull Request and Preview
 

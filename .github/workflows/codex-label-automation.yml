@@ -168,6 +168,8 @@ jobs:
         uses: openai/codex-action@b11346a6fa031e2e164ab4b7c7ea201afffd7d59 # v1
         with:
           openai-api-key: ${{ secrets.OPENAI_API_KEY }}
+          model: ${{ steps.context.outputs.stage == 'implement' && 'gpt-5.6-terra' || 'gpt-5.6-luna' }}
+          effort: ${{ steps.context.outputs.stage == 'implement' && 'medium' || 'low' }}
           prompt-file: .github/codex/prompts/${{ steps.context.outputs.stage }}.md
           output-file: codex-output.json
           permission-profile: ${{ steps.context.outputs.stage == 'implement' && ':workspace' || ':read-only' }}

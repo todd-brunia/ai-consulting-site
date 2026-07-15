@@ -1,3 +1,5 @@
+import { readFileSync } from "node:fs";
+
 import { describe, expect, it } from "vitest";
 
 import {
@@ -27,6 +29,19 @@ const plan = {
 };
 
 describe("workflow state", () => {
+  it("uses the approved model and effort for each automated stage", () => {
+    const workflow = readFileSync(".github/workflows/codex-label-automation.yml", "utf8");
+
+    expect(workflow).toContain(
+      "model: ${{ steps.context.outputs.stage == 'implement' && 'gpt-5.6-terra' || 'gpt-5.6-luna' }}",
+    );
+    expect(workflow).toContain(
+      "effort: ${{ steps.context.outputs.stage == 'implement' && 'medium' || 'low' }}",
+    );
+    expect(workflow).not.toMatch(/model:.*gpt-5\.6-sol/);
+    expect(workflow).not.toMatch(/effort:.*high/);
+  });
+
   it("allows a trusted planning trigger and produces a stable marker", () => {
     const input = {
       enabled: true,

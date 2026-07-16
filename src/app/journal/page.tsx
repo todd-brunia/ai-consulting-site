@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
-import Link from "next/link";
-
 import { Footer } from "../home-sections";
+import { SubpageHeader } from "../subpage-header";
 import { journalEntries } from "./journal-content";
 import { JournalList } from "./journal-list";
 
@@ -17,28 +16,7 @@ const focusClass =
 export default function JournalPage() {
   return (
     <div className="flex min-h-screen flex-col bg-[#f7f5ef] text-[#1f2a2e]">
-      <header className="border-b border-[#d8d3c7] bg-[#f7f5ef]/95 px-6 py-4 lg:px-8">
-        <div className="mx-auto flex max-w-6xl flex-col items-start gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-6">
-          <Link
-            href="/"
-            aria-label="Todd Brunia AI Workflow Consulting home"
-            className={`flex min-h-12 flex-col justify-center text-[#294653] ${focusClass}`}
-          >
-            <span className="text-sm font-semibold uppercase tracking-[0.14em]">
-              Todd Brunia
-            </span>
-            <span className="mt-1 text-xs font-medium tracking-[0.04em] text-[#667276]">
-              AI Workflow Consulting
-            </span>
-          </Link>
-          <Link
-            href="/"
-            className={`text-sm font-semibold text-[#294653] underline decoration-[#9eb0a0] underline-offset-4 transition hover:text-[#172124] ${focusClass}`}
-          >
-            Back to consulting site
-          </Link>
-        </div>
-      </header>
+      <SubpageHeader />
 
       <main className="flex-1">
         <section className="border-b border-[#d8d3c7]">

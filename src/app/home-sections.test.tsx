@@ -1,7 +1,7 @@
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 
-import { Footer, Header, Hero } from "./home-sections";
+import { Footer, Header, Hero, TeamLearning } from "./home-sections";
 
 describe("Header", () => {
   it("provides consulting context in the accessible site identity", () => {
@@ -78,6 +78,37 @@ describe("Hero", () => {
     expect(
       screen.getByRole("link", { name: "See Engagement Options" }),
     ).toHaveAttribute("href", "#services");
+  });
+});
+
+describe("TeamLearning", () => {
+  it("qualifies the workforce-upskilling metric and links to its primary source", () => {
+    render(<TeamLearning />);
+
+    expect(
+      screen.getByRole("heading", {
+        level: 2,
+        name: "A useful AI workflow needs more than a new tool.",
+      }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        /77% of employers said they plan to upskill their workforce to better work alongside AI/i,
+      ),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        /survey of more than 1,000 global employers representing more than 14 million workers/i,
+      ),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("link", {
+        name: /Read the World Economic Forum's Future of Jobs Report 2025/i,
+      }),
+    ).toHaveAttribute(
+      "href",
+      "https://www3.weforum.org/docs/WEF_Future_of_Jobs_Report_2025.pdf",
+    );
   });
 });
 

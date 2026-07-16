@@ -277,6 +277,47 @@ export function Process() {
   );
 }
 
+export function TeamLearning() {
+  return (
+    <section className="border-y border-[#d8d3c7] bg-[#f7f5ef] py-20 lg:py-24">
+      <div className="mx-auto grid max-w-6xl gap-10 px-6 lg:grid-cols-[0.8fr_1.2fr] lg:px-8">
+        <div>
+          <p className={eyebrowClass}>Learning Is Part of the Work</p>
+          <h2 className="mt-4 text-3xl font-semibold text-[#172124] sm:text-4xl">
+            A useful AI workflow needs more than a new tool.
+          </h2>
+        </div>
+        <div className="max-w-3xl text-base leading-8 text-[#435156]">
+          <p>
+            In the World Economic Forum&apos;s 2025 survey of more than 1,000
+            global employers representing more than 14 million workers, 77% of
+            employers said they plan to upskill their workforce to better work
+            alongside AI.
+          </p>
+          <p className="mt-5">
+            That is a plan, not a promise of results. It does reinforce a
+            practical point: teams need time to learn, test a real workflow,
+            evaluate the output, and decide where human judgment belongs. A
+            focused engagement can make that learning concrete by starting with
+            one bounded process.
+          </p>
+          <p className="mt-6 text-sm leading-7 text-[#516166]">
+            <a
+              href="https://www3.weforum.org/docs/WEF_Future_of_Jobs_Report_2025.pdf"
+              className={`font-semibold text-[#294653] underline decoration-[#9eb0a0] underline-offset-4 transition hover:text-[#172124] ${focusClass}`}
+            >
+              Read the World Economic Forum&apos;s Future of Jobs Report 2025
+              (January 2025)
+            </a>
+            . The report summarizes its global employer survey and its findings
+            on planned workforce upskilling in response to AI.
+          </p>
+        </div>
+      </div>
+    </section>
+  );
+}
+
 export function About() {
   return (
     <section id="about" className="border-t border-[#d8d3c7] py-20 lg:py-24">

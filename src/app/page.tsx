@@ -7,6 +7,7 @@ import {
   Hero,
   Process,
   Services,
+  TeamLearning,
   WorkflowExamples,
 } from "./home-sections";
 
@@ -20,6 +21,7 @@ export default function Home() {
         <WorkflowExamples />
         <Services />
         <Process />
+        <TeamLearning />
         <About />
         <Contact />
       </main>

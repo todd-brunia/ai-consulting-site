@@ -138,16 +138,17 @@ export function Hero() {
           className="self-start border-l-4 border-[#52715f] bg-white/70 p-6 shadow-sm"
         >
           <h2 className="text-xl font-semibold text-[#172124]">
-            Start with the work, not the tool.
+            People remain responsible for the outcome.
           </h2>
           <p className="mt-4 text-sm leading-7 text-[#516166]">
-            Useful AI adoption begins with a real process, a clear constraint,
-            and a small experiment reviewed by the people responsible for the
-            outcome.
+            AI can assist with the work, but the people who own it retain
+            direction, judgment, and accountability.
           </p>
           <p className="mt-5 border-t border-[#ddd8cc] pt-5 text-sm leading-7 text-[#516166]">
-            The right answer may be AI, conventional automation, or no new
-            technology at all.
+            Based on the workflow&apos;s risk, people can review uncertain output,
+            approve consequential actions, and correct exceptions. The right
+            answer may be AI, conventional automation, or no new technology at
+            all.
           </p>
         </aside>
       </div>

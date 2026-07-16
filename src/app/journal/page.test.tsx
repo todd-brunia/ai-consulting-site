@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 
 import { journalEntries } from "./journal-content";
 import JournalPage from "./page";
+import { contactHref } from "../home-content";
 
 describe("JournalPage", () => {
   it("positions the journal as a curated narrative with clear navigation", () => {
@@ -21,6 +22,11 @@ describe("JournalPage", () => {
     expect(
       screen.getByRole("link", { name: "Back to consulting site" }),
     ).toHaveAttribute("href", "/");
+    expect(
+      within(screen.getByRole("banner")).getByRole("link", {
+        name: "Discuss Your Workflow",
+      }),
+    ).toHaveAttribute("href", contactHref);
     expect(
       screen.getByRole("navigation", { name: "Footer links" }),
     ).toBeInTheDocument();

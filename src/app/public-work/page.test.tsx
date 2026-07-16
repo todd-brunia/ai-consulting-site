@@ -1,9 +1,10 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 
 import type { PublicWorkItem } from "./public-work-content";
 import PublicWorkPage from "./page";
 import { PublicWorkList } from "./public-work-list";
+import { contactHref } from "../home-content";
 
 describe("PublicWorkPage", () => {
   it("introduces the selected public work and provides next steps", () => {
@@ -17,8 +18,10 @@ describe("PublicWorkPage", () => {
       screen.getByRole("link", { name: "Back to consulting site" }),
     ).toHaveAttribute("href", "/");
     expect(
-      screen.getByRole("link", { name: "Discuss Your Workflow" }),
-    ).toHaveAttribute("href", expect.stringMatching(/^mailto:/));
+      within(screen.getByRole("banner")).getByRole("link", {
+        name: "Discuss Your Workflow",
+      }),
+    ).toHaveAttribute("href", contactHref);
   });
 
   it("links the initial repository and its technical changelog", () => {

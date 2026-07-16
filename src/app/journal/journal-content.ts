@@ -8,6 +8,15 @@ export type JournalEntry = {
 
 export const journalEntries = [
   {
+    id: "clarified-human-guidance-in-ai-workflows",
+    date: "2026-07-16",
+    title: "Clarified how people guide AI-enabled workflows",
+    problemOrOpportunity:
+      "The site needed to make clearer that AI can assist people without taking away their direction, judgment, or responsibility for the outcome.",
+    accomplished:
+      "I clarified the homepage guidance so visitors can see how human review, approval, escalation, and correction can fit a workflow according to its risk and consequences.",
+  },
+  {
     id: "automated-human-gated-ai-workflow",
     date: "2026-07-14",
     title: "Automated a human-gated AI workflow",

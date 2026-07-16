@@ -21,7 +21,7 @@ export const workflowExamples = [
   "Assist developers with repetitive implementation work",
   "Coordinate multi-step work across existing systems",
   "Review and summarize high-volume operational material",
-  "Add human approval to AI-assisted processes",
+  "Set up human review and approval for consequential actions",
 ];
 
 export const services = [
@@ -48,7 +48,7 @@ export const services = [
     audience:
       "Software organizations preparing to integrate AI capabilities into existing systems.",
     deliverables:
-      "A review of architecture, data, security, integration, evaluation, observability, and human oversight.",
+      "A review of architecture, data, security, integration, evaluation, observability, and oversight points matched to workflow risk.",
     outcome:
       "A prioritized readiness plan that identifies production risks before they become expensive.",
   },
@@ -73,7 +73,7 @@ export const processSteps = [
   {
     title: "Production implementation",
     description:
-      "Integrate the solution with appropriate security, evaluation, and oversight.",
+      "Integrate the solution with appropriate security, evaluation, and review, approval, or escalation where judgment or consequence calls for it.",
   },
   {
     title: "Team enablement",

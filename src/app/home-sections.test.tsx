@@ -60,6 +60,17 @@ describe("Hero", () => {
     expect(
       screen.getByText("AI workflow consulting for Midwestern organizations"),
     ).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", {
+        level: 2,
+        name: "People remain responsible for the outcome.",
+      }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        /people can review uncertain output, approve consequential actions, and correct exceptions/i,
+      ),
+    ).toBeInTheDocument();
 
     expect(
       screen.getByRole("link", { name: "Discuss Your Workflow" }),

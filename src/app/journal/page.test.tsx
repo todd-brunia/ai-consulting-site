@@ -36,7 +36,7 @@ describe("JournalPage", () => {
     render(<JournalPage />);
 
     const articles = screen.getAllByRole("article");
-    expect(articles).toHaveLength(11);
+    expect(articles).toHaveLength(12);
 
     articles.forEach((article, index) => {
       const entry = journalEntries[index];
@@ -67,7 +67,18 @@ describe("JournalPage", () => {
       "https://ai-consulting-site-pied.vercel.app/public-work/ai-onboarding-automation-poc",
     );
     expect(within(articles[1]).queryByRole("link")).not.toBeInTheDocument();
-    expect(articles.at(-1)).toHaveTextContent("Defined the initial direction");
+    expect(articles.at(-1)).toHaveTextContent(
+      "Recognized an opportunity to help with AI-enabled workflows",
+    );
+    expect(articles.at(-1)).toHaveTextContent("July 3, 2026");
+    expect(articles.at(-1)).toHaveTextContent(
+      "engineering judgment, low-risk experiments, and honest discussion of uncertainty",
+    );
+    expect(
+      within(articles.at(-1)!).getByRole("link", {
+        name: "Visit the AI Daily Brief",
+      }),
+    ).toHaveAttribute("href", "https://aidailybrief.ai/");
   });
 });
 

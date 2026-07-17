@@ -8,6 +8,15 @@ export type JournalEntry = {
 
 export const journalEntries = [
   {
+    id: "built-onboarding-automation-proof-of-concept",
+    date: "2026-07-17",
+    title: "Built an onboarding automation proof of concept",
+    problemOrOpportunity:
+      "I wanted to test whether a small, practical AI workflow could coordinate onboarding work while keeping people responsible for review and decisions.",
+    accomplished:
+      "I built a public personal proof of concept in an evening with Codex and ChatGPT 5.6 Sol. It uses LangGraph orchestration and a local language model to explore a bounded workflow, including the tradeoffs around cost, control, and production readiness.",
+  },
+  {
     id: "clarified-human-guidance-in-ai-workflows",
     date: "2026-07-16",
     title: "Clarified how people guide AI-enabled workflows",

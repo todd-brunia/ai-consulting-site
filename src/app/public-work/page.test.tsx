@@ -32,7 +32,7 @@ describe("PublicWorkPage", () => {
     ).toBeInTheDocument();
     expect(screen.getByText(/human-gated, AI-assisted/i)).toBeInTheDocument();
     expect(
-      screen.getByRole("link", { name: "Explore this example" }),
+      screen.getAllByRole("link", { name: "Explore this example" })[0],
     ).toHaveAttribute("href", "/public-work/ai-consulting-site");
     expect(
       screen.getByRole("link", {
@@ -49,6 +49,29 @@ describe("PublicWorkPage", () => {
     ).toHaveAttribute(
       "href",
       "https://github.com/todd-brunia/ai-consulting-site/releases",
+    );
+  });
+
+  it("lists the onboarding automation proof of concept", () => {
+    render(<PublicWorkPage />);
+
+    expect(
+      screen.getByRole("heading", {
+        level: 2,
+        name: "AI Onboarding Automation Proof of Concept",
+      }),
+    ).toBeInTheDocument();
+    expect(screen.getByText(/LangGraph and a local language model/i)).toBeInTheDocument();
+    expect(
+      screen.getAllByRole("link", { name: "Explore this example" })[1],
+    ).toHaveAttribute("href", "/public-work/ai-onboarding-automation-poc");
+    expect(
+      screen.getByRole("link", {
+        name: "View AI Onboarding Automation Proof of Concept repository",
+      }),
+    ).toHaveAttribute(
+      "href",
+      "https://github.com/todd-brunia/ai-onboarding-automation-poc",
     );
   });
 });

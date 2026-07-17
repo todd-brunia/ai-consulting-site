@@ -27,4 +27,13 @@ export const publicWorkItems = [
       },
     ],
   },
+  {
+    id: "ai-onboarding-automation-poc",
+    name: "AI Onboarding Automation Proof of Concept",
+    description:
+      "A personal experiment that uses LangGraph and a local language model to explore a bounded onboarding workflow with human review.",
+    detailPath: "/public-work/ai-onboarding-automation-poc",
+    repositoryUrl:
+      "https://github.com/todd-brunia/ai-onboarding-automation-poc",
+  },
 ] satisfies readonly PublicWorkItem[];

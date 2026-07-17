@@ -36,7 +36,7 @@ describe("JournalPage", () => {
     render(<JournalPage />);
 
     const articles = screen.getAllByRole("article");
-    expect(articles).toHaveLength(10);
+    expect(articles).toHaveLength(11);
 
     articles.forEach((article, index) => {
       const entry = journalEntries[index];
@@ -52,11 +52,11 @@ describe("JournalPage", () => {
     });
 
     expect(articles[0]).toHaveTextContent(
-      "Clarified how people guide AI-enabled workflows",
+      "Built an onboarding automation proof of concept",
     );
-    expect(articles[0]).toHaveTextContent("July 16, 2026");
+    expect(articles[0]).toHaveTextContent("July 17, 2026");
     expect(articles[0]).toHaveTextContent(
-      "human review, approval, escalation, and correction",
+      "LangGraph orchestration and a local language model",
     );
     expect(articles.at(-1)).toHaveTextContent("Defined the initial direction");
   });

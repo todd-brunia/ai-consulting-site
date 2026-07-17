@@ -114,6 +114,19 @@ export const journalEntries = [
     accomplished:
       "I documented the initial vision and repository guidance so later design, content, and engineering decisions had a grounded reference point.",
   },
+  {
+    id: "recognized-ai-workflow-consulting-opportunity",
+    date: "2026-07-03",
+    title: "Recognized an opportunity to help with AI-enabled workflows",
+    problemOrOpportunity:
+      "As current AI developments made more capable workflows feel increasingly practical, I saw that small and mid-sized organizations could use grounded help deciding where to experiment and where caution was warranted.",
+    accomplished:
+      "After spending June and July learning from the AI Daily Brief, I began exploring a small consulting practice focused on practical AI-enabled workflows. My aim is to bring engineering judgment, low-risk experiments, and honest discussion of uncertainty to teams considering their next step.",
+    relatedLink: {
+      href: "https://aidailybrief.ai/",
+      label: "Visit the AI Daily Brief",
+    },
+  },
 ] satisfies readonly JournalEntry[];
 
 export function formatJournalDate(date: string) {

@@ -5,8 +5,7 @@ export const navItems = [
   { label: "Journal", href: "/journal" },
 ];
 
-export const contactHref =
-  "mailto:tbrunia+ai-consulting@gmail.com?subject=AI%20workflow%20discovery%20conversation&body=What%20process%20are%20you%20considering%3F%0A%0AWho%20currently%20performs%20it%3F%0A%0AWhat%20makes%20it%20slow%2C%20expensive%2C%20or%20difficult%3F%0A";
+export const contactHref = "/contact";
 
 export const credentials = [
   "Staff Software Engineer",

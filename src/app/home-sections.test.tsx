@@ -1,7 +1,7 @@
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 
-import { Footer, Header, Hero, TeamLearning } from "./home-sections";
+import { Contact, Footer, Header, Hero, TeamLearning } from "./home-sections";
 
 describe("Header", () => {
   it("provides consulting context in the accessible site identity", () => {
@@ -40,7 +40,7 @@ describe("Header", () => {
     });
     expect(contactLinks).toHaveLength(2);
     contactLinks.forEach((link) => {
-      expect(link).toHaveAttribute("href", expect.stringMatching(/^mailto:/));
+      expect(link).toHaveAttribute("href", "/contact");
     });
 
     expect(screen.getByText("Menu").closest("summary")).toBeInTheDocument();
@@ -74,10 +74,20 @@ describe("Hero", () => {
 
     expect(
       screen.getByRole("link", { name: "Discuss Your Workflow" }),
-    ).toHaveAttribute("href", expect.stringMatching(/^mailto:/));
+    ).toHaveAttribute("href", "/contact");
     expect(
       screen.getByRole("link", { name: "See Engagement Options" }),
     ).toHaveAttribute("href", "#services");
+  });
+});
+
+describe("Contact", () => {
+  it("directs the workflow discussion action to the intake page", () => {
+    render(<Contact />);
+
+    expect(
+      screen.getByRole("link", { name: "Discuss Your Workflow" }),
+    ).toHaveAttribute("href", "/contact");
   });
 });
 

@@ -50,6 +50,27 @@ describe("workflow state", () => {
     expect(workflow).not.toContain("github.event.label.name == 'approved-for-build'");
   });
 
+  it("loads trusted helpers before reporting a blocked automation failure", () => {
+    const workflow = readFileSync(".github/workflows/codex-label-automation.yml", "utf8");
+    const reportFailure = workflow.slice(workflow.indexOf("  report_failure:"));
+
+    expect(reportFailure).toContain("contents: read");
+    expect(reportFailure).toContain("issues: write");
+    expect(reportFailure).toContain("- name: Check out trusted failure reporter code");
+    expect(reportFailure).toContain("ref: ${{ github.event.repository.default_branch }}");
+    expect(reportFailure).toContain("persist-credentials: false");
+    expect(reportFailure).toContain(
+      "const helpers = await import(`${process.env.GITHUB_WORKSPACE}/.github/scripts/codex-workflow-state.mjs`);",
+    );
+    expect(reportFailure).toContain(
+      "ISSUE_NUMBER: ${{ needs.generate.outputs.issue_number || inputs.issue_number || github.event.issue.number }}",
+    );
+    expect(reportFailure).toContain(
+      "STAGE: ${{ needs.generate.outputs.stage || inputs.stage || github.event.label.name }}",
+    );
+    expect(reportFailure).toContain("helpers.failureTransitionFor(process.env.STAGE)");
+  });
+
   it("allows a trusted planning trigger and produces a stable marker", () => {
     const input = {
       enabled: true,
@@ -244,6 +265,14 @@ describe("workflow state", () => {
     });
     expect(failureTransitionFor("implement")).toEqual({
       remove: ["approved-for-ai-build"],
+      add: ["blocked"],
+    });
+    expect(failureTransitionFor("plan")).toEqual({
+      remove: ["needs-planning"],
+      add: ["blocked"],
+    });
+    expect(failureTransitionFor("revise")).toEqual({
+      remove: ["changes-requested"],
       add: ["blocked"],
     });
   });

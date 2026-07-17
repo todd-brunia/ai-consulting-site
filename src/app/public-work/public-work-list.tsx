@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 import type { PublicWorkItem } from "./public-work-content";
 
 const linkClass =
@@ -18,6 +20,9 @@ export function PublicWorkList({
             {item.description}
           </p>
           <div className="mt-6 flex flex-wrap gap-x-6 gap-y-3 text-sm">
+            <Link href={item.detailPath} className={linkClass}>
+              Explore this example
+            </Link>
             <a
               href={item.repositoryUrl}
               aria-label={`View ${item.name} repository`}

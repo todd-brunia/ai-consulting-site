@@ -4,6 +4,10 @@ export type JournalEntry = {
   title: string;
   problemOrOpportunity: string;
   accomplished: string;
+  relatedLink?: {
+    href: string;
+    label: string;
+  };
 };
 
 export const journalEntries = [
@@ -15,6 +19,10 @@ export const journalEntries = [
       "I wanted to test whether a small, practical AI workflow could coordinate onboarding work while keeping people responsible for review and decisions.",
     accomplished:
       "I built a public personal proof of concept in an evening with Codex and ChatGPT 5.6 Sol. It uses LangGraph orchestration and a local language model to explore a bounded workflow, including the tradeoffs around cost, control, and production readiness.",
+    relatedLink: {
+      href: "https://ai-consulting-site-pied.vercel.app/public-work/ai-onboarding-automation-poc",
+      label: "View the AI onboarding automation proof of concept",
+    },
   },
   {
     id: "clarified-human-guidance-in-ai-workflows",

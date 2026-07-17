@@ -3,6 +3,9 @@ import {
   type JournalEntry,
 } from "./journal-content";
 
+const linkClass =
+  "font-semibold text-[#294653] underline decoration-[#9eb0a0] underline-offset-4 transition hover:text-[#172124] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#2f6f8f]";
+
 export function JournalList({
   entries,
 }: Readonly<{ entries: readonly JournalEntry[] }>) {
@@ -38,6 +41,13 @@ export function JournalList({
                 <dd className="mt-1">{entry.accomplished}</dd>
               </div>
             </dl>
+            {entry.relatedLink && (
+              <p className="mt-6 text-sm">
+                <a href={entry.relatedLink.href} className={linkClass}>
+                  {entry.relatedLink.label}
+                </a>
+              </p>
+            )}
           </article>
         </li>
       ))}

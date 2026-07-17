@@ -32,6 +32,9 @@ describe("PublicWorkPage", () => {
     ).toBeInTheDocument();
     expect(screen.getByText(/human-gated, AI-assisted/i)).toBeInTheDocument();
     expect(
+      screen.getByRole("link", { name: "Explore this example" }),
+    ).toHaveAttribute("href", "/public-work/ai-consulting-site");
+    expect(
       screen.getByRole("link", {
         name: "View AI Consulting Site repository",
       }),
@@ -56,6 +59,7 @@ describe("PublicWorkList", () => {
       id: "example",
       name: "Example Repository",
       description: "A selected public repository.",
+      detailPath: "/public-work/example",
       repositoryUrl: "https://github.com/example/repository",
     };
 
@@ -64,6 +68,9 @@ describe("PublicWorkList", () => {
     expect(
       screen.getByRole("link", { name: "View Example Repository repository" }),
     ).toHaveAttribute("href", "https://github.com/example/repository");
+    expect(
+      screen.getByRole("link", { name: "Explore this example" }),
+    ).toHaveAttribute("href", "/public-work/example");
     expect(screen.queryByText("Technical changelog")).not.toBeInTheDocument();
   });
 });

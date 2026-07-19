@@ -1,7 +1,14 @@
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 
-import { Contact, Footer, Header, Hero, TeamLearning } from "./home-sections";
+import {
+  About,
+  Contact,
+  Footer,
+  Header,
+  Hero,
+  TeamLearning,
+} from "./home-sections";
 
 describe("Header", () => {
   it("provides consulting context in the accessible site identity", () => {
@@ -118,6 +125,26 @@ describe("TeamLearning", () => {
     ).toHaveAttribute(
       "href",
       "https://www3.weforum.org/docs/WEF_Future_of_Jobs_Report_2025.pdf",
+    );
+  });
+});
+
+describe("About", () => {
+  it("shows Todd's profile image and retains his background details", () => {
+    render(<About />);
+
+    const profileImage = screen.getByRole("img", { name: "Todd Brunia" });
+    const imageUrl = new URL(profileImage.getAttribute("src")!, "http://localhost");
+
+    expect(imageUrl.searchParams.get("url")).toBe(
+      "/images/profile-photos/todd-brunia.jpg",
+    );
+    expect(
+      screen.getByText(/I also hold an MBA from Iowa State University/i),
+    ).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "LinkedIn" })).toHaveAttribute(
+      "href",
+      "https://linkedin.com/in/tbrunia",
     );
   });
 });

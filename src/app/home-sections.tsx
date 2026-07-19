@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 
 import {
@@ -328,29 +329,40 @@ export function About() {
             Enterprise engineering judgment for a fast-moving technology.
           </h2>
         </div>
-        <div className="space-y-5 text-base leading-8 text-[#435156]">
-          <p>
-            I&apos;m Todd Brunia, a Staff Software Engineer with more than 20 years
-            of experience building enterprise applications, APIs, cloud
-            services, and software delivery practices.
-          </p>
-          <p>
-            I approach AI as an engineer, not an evangelist. That means starting
-            with the business process, testing assumptions early, accounting for
-            security and maintainability, and keeping people involved wherever
-            judgment matters.
-          </p>
-          <p>
-            The objective is a useful business result, not an AI project for its
-            own sake. You can review more of my background on{" "}
-            <a
-              href="https://linkedin.com/in/tbrunia"
-              className={`font-semibold text-[#294653] underline decoration-[#9eb0a0] underline-offset-4 transition hover:text-[#172124] ${focusClass}`}
-            >
-              LinkedIn
-            </a>
-            .
-          </p>
+        <div className="grid gap-8 sm:grid-cols-[minmax(11rem,0.7fr)_1.3fr] sm:items-start">
+          <Image
+            src="/images/profile-photos/todd-brunia.jpg"
+            alt="Todd Brunia"
+            width={800}
+            height={800}
+            sizes="(min-width: 1024px) 16rem, (min-width: 640px) 35vw, 100vw"
+            className="w-full border border-[#d8d3c7] bg-[#f7f5ef] object-cover"
+          />
+          <div className="space-y-5 text-base leading-8 text-[#435156]">
+            <p>
+              I&apos;m Todd Brunia, a Staff Software Engineer with more than 20
+              years of experience building enterprise applications, APIs, cloud
+              services, and software delivery practices. I also hold an MBA
+              from Iowa State University.
+            </p>
+            <p>
+              I approach AI as an engineer, not an evangelist. That means
+              starting with the business process, testing assumptions early,
+              accounting for security and maintainability, and keeping people
+              involved wherever judgment matters.
+            </p>
+            <p>
+              The objective is a useful business result, not an AI project for
+              its own sake. You can review more of my background on{" "}
+              <a
+                href="https://linkedin.com/in/tbrunia"
+                className={`font-semibold text-[#294653] underline decoration-[#9eb0a0] underline-offset-4 transition hover:text-[#172124] ${focusClass}`}
+              >
+                LinkedIn
+              </a>
+              .
+            </p>
+          </div>
         </div>
       </div>
     </section>

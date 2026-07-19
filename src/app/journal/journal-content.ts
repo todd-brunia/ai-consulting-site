@@ -4,6 +4,10 @@ export type JournalEntry = {
   title: string;
   problemOrOpportunity: string;
   accomplished: string;
+  narrativeSections?: readonly {
+    heading: string;
+    paragraphs: readonly string[];
+  }[];
   relatedLink?: {
     href: string;
     label: string;
@@ -11,6 +15,47 @@ export type JournalEntry = {
 };
 
 export const journalEntries = [
+  {
+    id: "revised-client-portal-plan-through-dialogue-with-ai",
+    date: "2026-07-19",
+    title: "Revised a client portal plan through dialogue with AI",
+    problemOrOpportunity:
+      "I needed a practical plan for a client portal that would support the business while also giving me relevant experience with AI-enabled workflows.",
+    accomplished:
+      "I used an extended planning conversation with AI to challenge and substantially narrow the initial direction before deciding to proceed with a revised plan.",
+    narrativeSections: [
+      {
+        heading: "The initial plan",
+        paragraphs: [
+          "The first proposal was technically coherent: an AWS-centered client portal with custom infrastructure and transaction workflows. But it asked one project to serve clients, deepen my AWS experience, handle signing and invoicing, and create AI-learning opportunities before I had validated the business process.",
+        ],
+      },
+      {
+        heading: "The counterproposal",
+        paragraphs: [
+          "I asked AI to challenge that direction rather than refine it. Its counterproposal made the tradeoff clear: building authentication, infrastructure, electronic signatures, and invoicing myself would add risk and ownership cost without much strategic value for the AI learning I wanted from this work.",
+        ],
+      },
+      {
+        heading: "My evaluation and revised direction",
+        paragraphs: [
+          "I reviewed that critique, asked follow-up questions about vendor exposure, portability, recovery, and cost estimates, and made the decisions. The revised direction uses Stripe for invoicing, an external provider for electronic signatures, Vercel for the Next.js application, Supabase for PostgreSQL, authentication, and storage, and JSON:API for a reusable standards-based frontend and backend contract.",
+          "Those choices delegate commodity transactions where owning them would create an unfavorable risk or maintenance burden. They leave more room to learn from the workflow and make deliberate decisions about the parts that matter to the business.",
+        ],
+      },
+      {
+        heading: "The next step",
+        paragraphs: [
+          "The revised plan is complete as a planning artifact, and I intend to begin implementation within the next few days. The portal has not been implemented, validated with clients, or put into use.",
+          "The useful part of this AI-assisted process was not accepting a first answer. It was asking for a counterproposal, testing the reasoning with questions, and retaining responsibility for the goals, tradeoffs, vendor choices, approval, and decision to proceed.",
+        ],
+      },
+    ],
+    relatedLink: {
+      href: "https://github.com/todd-brunia/ai-consulting-meta/blob/36bf7375fceb19b7a6eb9be648d4aa3dc87a5bed/plans/client-portal/revised-plan.md",
+      label: "Read the revised client portal plan",
+    },
+  },
   {
     id: "built-onboarding-automation-proof-of-concept",
     date: "2026-07-17",

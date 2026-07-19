@@ -41,6 +41,22 @@ export function JournalList({
                 <dd className="mt-1">{entry.accomplished}</dd>
               </div>
             </dl>
+            {entry.narrativeSections && (
+              <div className="mt-8 space-y-6 text-base leading-8 text-[#435156]">
+                {entry.narrativeSections.map((section) => (
+                  <section key={section.heading}>
+                    <h3 className="font-semibold text-[#294653]">
+                      {section.heading}
+                    </h3>
+                    <div className="mt-1 space-y-4">
+                      {section.paragraphs.map((paragraph) => (
+                        <p key={paragraph}>{paragraph}</p>
+                      ))}
+                    </div>
+                  </section>
+                ))}
+              </div>
+            )}
             {entry.relatedLink && (
               <p className="mt-6 text-sm">
                 <a href={entry.relatedLink.href} className={linkClass}>

@@ -36,7 +36,7 @@ describe("JournalPage", () => {
     render(<JournalPage />);
 
     const articles = screen.getAllByRole("article");
-    expect(articles).toHaveLength(12);
+    expect(articles).toHaveLength(13);
 
     articles.forEach((article, index) => {
       const entry = journalEntries[index];
@@ -51,22 +51,57 @@ describe("JournalPage", () => {
       expect(within(article).getByText("What changed")).toBeInTheDocument();
     });
 
-    expect(articles[0]).toHaveTextContent(
+    const newEntryArticle = within(articles[0]).getByRole("heading", {
+      name: "Revised a client portal plan through dialogue with AI",
+    }).parentElement;
+    expect(newEntryArticle).not.toBeNull();
+    expect(newEntryArticle).toHaveTextContent("July 19, 2026");
+    expect(newEntryArticle).toHaveTextContent("The initial plan");
+    expect(newEntryArticle).toHaveTextContent("The counterproposal");
+    expect(newEntryArticle).toHaveTextContent(
+      "My evaluation and revised direction",
+    );
+    expect(newEntryArticle).toHaveTextContent("Stripe for invoicing");
+    expect(newEntryArticle).toHaveTextContent(
+      "an external provider for electronic signatures",
+    );
+    expect(newEntryArticle).toHaveTextContent(
+      "Vercel for the Next.js application",
+    );
+    expect(newEntryArticle).toHaveTextContent(
+      "Supabase for PostgreSQL, authentication, and storage",
+    );
+    expect(newEntryArticle).toHaveTextContent("JSON:API");
+    expect(newEntryArticle).toHaveTextContent(
+      "unfavorable risk or maintenance burden",
+    );
+    expect(newEntryArticle).toHaveTextContent("The next step");
+    expect(newEntryArticle).toHaveTextContent(
+      "The portal has not been implemented, validated with clients, or put into use.",
+    );
+    expect(
+      within(newEntryArticle!).getByRole("link", {
+        name: "Read the revised client portal plan",
+      }),
+    ).toHaveAttribute(
+      "href",
+      "https://github.com/todd-brunia/ai-consulting-meta/blob/36bf7375fceb19b7a6eb9be648d4aa3dc87a5bed/plans/client-portal/revised-plan.md",
+    );
+    expect(articles[1]).toHaveTextContent(
       "Built an onboarding automation proof of concept",
     );
-    expect(articles[0]).toHaveTextContent("July 17, 2026");
-    expect(articles[0]).toHaveTextContent(
+    expect(articles[1]).toHaveTextContent("July 17, 2026");
+    expect(articles[1]).toHaveTextContent(
       "LangGraph orchestration and a local language model",
     );
     expect(
-      within(articles[0]).getByRole("link", {
+      within(articles[1]).getByRole("link", {
         name: "View the AI onboarding automation proof of concept",
       }),
     ).toHaveAttribute(
       "href",
       "https://ai-consulting-site-pied.vercel.app/public-work/ai-onboarding-automation-poc",
     );
-    expect(within(articles[1]).queryByRole("link")).not.toBeInTheDocument();
     expect(articles.at(-1)).toHaveTextContent(
       "Recognized an opportunity to help with AI-enabled workflows",
     );

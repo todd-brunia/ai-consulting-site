@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   About,
+  CostAndValue,
   Contact,
   Footer,
   Header,
@@ -130,6 +131,33 @@ describe("Process", () => {
         /document the system, work with your team as they use it, and assess what they can operate or extend after the engagement/i,
       ),
     ).toBeInTheDocument();
+  });
+});
+
+describe("CostAndValue", () => {
+  it("explains how costs and value are assessed before further investment", () => {
+    render(<CostAndValue />);
+
+    expect(
+      screen.getByRole("heading", {
+        level: 2,
+        name: "Cost, value, and a sensible starting point.",
+      }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(/estimate the adoption and operating costs/i),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(/baseline measures and success criteria/i),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        /stop or scale down if expected value does not justify further investment/i,
+      ),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("link", { name: "Discuss Your Workflow" }),
+    ).toHaveAttribute("href", "/contact");
   });
 });
 

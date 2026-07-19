@@ -30,7 +30,7 @@ export const services = [
     audience:
       "Business or technology leaders who know a process is inefficient but are unsure whether AI is the right solution.",
     deliverables:
-      "Stakeholder conversation, workflow review, opportunity and risk analysis, prioritized recommendations, and a proposed pilot.",
+      "Stakeholder conversation, workflow review, opportunity, risk, and cost analysis, baseline measures, prioritized recommendations, and a proposed pilot.",
     outcome:
       "A clear decision about where to invest, what to avoid, and what to test first.",
   },
@@ -39,9 +39,9 @@ export const services = [
     audience:
       "Teams with a promising workflow that need evidence before committing to production development.",
     deliverables:
-      "Defined success criteria, a working prototype, an architecture outline, a risk review, and a demonstration.",
+      "Defined success criteria and baseline measures, a working prototype, an architecture outline, a risk and operating-cost review, and a demonstration.",
     outcome:
-      "Evidence of feasibility and a practical path toward—or recommendation against—production implementation.",
+      "Evidence of feasibility and expected value, with a practical path toward—or recommendation against—production implementation.",
   },
   {
     title: "AI Architecture & Readiness Review",
@@ -63,7 +63,7 @@ export const processSteps = [
   {
     title: "Opportunity assessment",
     description:
-      "Determine whether AI is appropriate and define success, risks, and likely value.",
+      "Determine whether AI is appropriate, estimate adoption and operating costs, and define baseline measures, success, risks, and likely value.",
   },
   {
     title: "Prototype or pilot",

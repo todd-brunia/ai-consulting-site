@@ -1,5 +1,6 @@
 import {
   About,
+  CostAndValue,
   Contact,
   Credibility,
   Footer,
@@ -20,6 +21,7 @@ export default function Home() {
         <Credibility />
         <WorkflowExamples />
         <Services />
+        <CostAndValue />
         <Process />
         <TeamLearning />
         <About />

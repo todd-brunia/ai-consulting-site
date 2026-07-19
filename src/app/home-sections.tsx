@@ -247,6 +247,64 @@ export function Services() {
   );
 }
 
+export function CostAndValue() {
+  return (
+    <section className="bg-white py-20 lg:py-24">
+      <div className="mx-auto max-w-6xl px-6 lg:px-8">
+        <div className="max-w-3xl">
+          <p className={eyebrowClass}>Cost and Value</p>
+          <h2 className="mt-4 text-3xl font-semibold text-[#172124] sm:text-4xl">
+            Cost, value, and a sensible starting point.
+          </h2>
+          <p className="mt-5 text-base leading-8 text-[#516166]">
+            Before a prototype or pilot, we can estimate the adoption and
+            operating costs for a specific AI-enabled workflow, identify where
+            uncertainty remains, and decide what value is worth measuring.
+          </p>
+        </div>
+        <div className="mt-10 grid gap-5 lg:grid-cols-3">
+          <article className="border border-[#d8d3c7] bg-[#fbfaf7] p-6">
+            <h3 className="text-xl font-semibold text-[#172124]">
+              Start with a bounded workflow
+            </h3>
+            <p className="mt-4 text-sm leading-7 text-[#516166]">
+              Define baseline measures and success criteria tied to practical
+              outcomes, such as time, quality, or throughput, before deciding
+              whether to invest further.
+            </p>
+          </article>
+          <article className="border border-[#d8d3c7] bg-[#fbfaf7] p-6">
+            <h3 className="text-xl font-semibold text-[#172124]">
+              Control costs through design
+            </h3>
+            <p className="mt-4 text-sm leading-7 text-[#516166]">
+              Model and tool choices, usage limits, human review, and
+              monitoring can help keep operating costs visible and appropriate
+              for the workflow.
+            </p>
+          </article>
+          <article className="border border-[#d8d3c7] bg-[#fbfaf7] p-6">
+            <h3 className="text-xl font-semibold text-[#172124]">
+              Use evidence to choose the next step
+            </h3>
+            <p className="mt-4 text-sm leading-7 text-[#516166]">
+              After an assessment or prototype, we can stop or scale down if
+              expected value does not justify further investment, or focus
+              additional AI usage where it is likely to be useful.
+            </p>
+          </article>
+        </div>
+        <a
+          href={contactHref}
+          className={`mt-8 inline-flex min-h-12 items-center justify-center rounded-md bg-[#254c5f] px-6 py-3 text-sm font-semibold text-white transition hover:bg-[#1d3d4c] ${focusClass}`}
+        >
+          Discuss Your Workflow
+        </a>
+      </div>
+    </section>
+  );
+}
+
 export function Process() {
   return (
     <section id="process" className="bg-white py-20 lg:py-24">
@@ -271,8 +329,9 @@ export function Process() {
           ))}
         </ol>
         <p className="mt-10 max-w-3xl border-l-4 border-[#52715f] bg-[#f7f5ef] p-5 text-sm leading-7 text-[#435156]">
-          Engagements can stop after any stage. If AI is not the right answer,
-          I&apos;ll say so and recommend a simpler direction.
+          Engagements can stop after any stage. If expected value does not
+          justify further investment, or AI is not the right answer, I&apos;ll say
+          so and recommend a simpler direction.
         </p>
       </div>
     </section>

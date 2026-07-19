@@ -7,6 +7,7 @@ import {
   Footer,
   Header,
   Hero,
+  Process,
   TeamLearning,
 } from "./home-sections";
 
@@ -87,6 +88,16 @@ describe("Hero", () => {
         /people can review uncertain output, approve consequential actions, and correct exceptions/i,
       ),
     ).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        /together, we'll define clear goals for one document-heavy/i,
+      ),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        /your team helps test the work, evaluate the output, and learn what it takes to use it well/i,
+      ),
+    ).toBeInTheDocument();
 
     expect(
       screen.getByRole("link", { name: "Discuss Your Workflow" }),
@@ -104,6 +115,21 @@ describe("Contact", () => {
     expect(
       screen.getByRole("link", { name: "Discuss Your Workflow" }),
     ).toHaveAttribute("href", "/contact");
+  });
+});
+
+describe("Process", () => {
+  it("treats team readiness after the engagement as an assessed outcome", () => {
+    render(<Process />);
+
+    expect(
+      screen.getByRole("heading", { level: 3, name: "Team enablement" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        /document the system, work with your team as they use it, and assess what they can operate or extend after the engagement/i,
+      ),
+    ).toBeInTheDocument();
   });
 });
 

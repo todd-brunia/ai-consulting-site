@@ -36,4 +36,12 @@ export const publicWorkItems = [
     repositoryUrl:
       "https://github.com/todd-brunia/ai-onboarding-automation-poc",
   },
+  {
+    id: "ai-consulting-meta",
+    name: "AI Consulting Planning Record",
+    description:
+      "A sanitized planning record that shows an initial proposal, an AI counterproposal, human evaluation, and a revised technical direction for a hypothetical client portal.",
+    detailPath: "/public-work/ai-consulting-meta",
+    repositoryUrl: "https://github.com/todd-brunia/ai-consulting-meta",
+  },
 ] satisfies readonly PublicWorkItem[];

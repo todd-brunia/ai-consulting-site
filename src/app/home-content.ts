@@ -3,6 +3,7 @@ export const navItems = [
   { label: "How We Work", href: "#process" },
   { label: "About", href: "#about" },
   { label: "Journal", href: "/journal" },
+  { label: "Public work", href: "/public-work" },
 ];
 
 export const contactHref = "/contact";

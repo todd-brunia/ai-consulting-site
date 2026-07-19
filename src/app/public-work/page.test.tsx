@@ -74,6 +74,29 @@ describe("PublicWorkPage", () => {
       "https://github.com/todd-brunia/ai-onboarding-automation-poc",
     );
   });
+
+  it("lists the AI consulting planning record", () => {
+    render(<PublicWorkPage />);
+
+    expect(
+      screen.getByRole("heading", {
+        level: 2,
+        name: "AI Consulting Planning Record",
+      }),
+    ).toBeInTheDocument();
+    expect(screen.getByText(/sanitized planning record/i)).toBeInTheDocument();
+    expect(
+      screen.getAllByRole("link", { name: "Explore this example" })[2],
+    ).toHaveAttribute("href", "/public-work/ai-consulting-meta");
+    expect(
+      screen.getByRole("link", {
+        name: "View AI Consulting Planning Record repository",
+      }),
+    ).toHaveAttribute(
+      "href",
+      "https://github.com/todd-brunia/ai-consulting-meta",
+    );
+  });
 });
 
 describe("PublicWorkList", () => {

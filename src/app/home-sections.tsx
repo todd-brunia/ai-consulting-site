@@ -34,7 +34,7 @@ export function Header() {
             AI Workflow Consulting
           </span>
         </a>
-        <div className="hidden items-center gap-6 text-sm font-medium text-[#516166] md:flex">
+        <div className="hidden items-center gap-6 text-sm font-medium text-[#516166] lg:flex">
           <div className="flex items-center gap-6">
             {navItems.map((item) => (
               <a
@@ -53,7 +53,7 @@ export function Header() {
             Discuss Your Workflow
           </a>
         </div>
-        <div className="flex items-center gap-3 md:hidden">
+        <div className="flex items-center gap-3 lg:hidden">
           <a
             href={contactHref}
             className={`inline-flex min-h-11 flex-1 items-center justify-center rounded-md bg-[#254c5f] px-4 py-2 text-center text-sm font-semibold text-white transition hover:bg-[#1d3d4c] ${focusClass}`}

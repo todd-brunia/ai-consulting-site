@@ -78,6 +78,6 @@ export const processSteps = [
   {
     title: "Team enablement",
     description:
-      "Document the system and help your team operate and extend it.",
+      "Document the system, work with your team as they use it, and assess what they can operate or extend after the engagement.",
   },
 ];

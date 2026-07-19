@@ -105,14 +105,15 @@ export function Hero() {
           </h1>
           <div className="mt-7 space-y-5 text-lg leading-8 text-[#435156]">
             <p>
-              I help software and operations teams identify worthwhile AI
-              opportunities, validate them with a focused prototype, and build
-              solutions their people can safely use and maintain.
+              I work alongside software and operations teams to identify
+              worthwhile AI opportunities, test them with focused prototypes,
+              and build solutions their people can safely use and maintain.
             </p>
             <p>
-              Start with one document-heavy, coordination-heavy, or
-              knowledge-intensive workflow. We&apos;ll clarify the opportunity,
-              risks, expected value, and best next step.
+              Together, we&apos;ll define clear goals for one document-heavy,
+              coordination-heavy, or knowledge-intensive workflow. Your team
+              helps test the work, evaluate the output, and learn what it
+              takes to use it well.
             </p>
           </div>
           <div className="mt-9 flex flex-col gap-3 sm:flex-row">

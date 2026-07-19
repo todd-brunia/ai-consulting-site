@@ -42,6 +42,15 @@ describe("Header", () => {
       expect(link).toHaveAttribute("href", "/journal");
     });
 
+    const publicWorkLinks = screen.getAllByRole("link", {
+      name: "Public work",
+    });
+    expect(publicWorkLinks).toHaveLength(2);
+    publicWorkLinks.forEach((link) => {
+      expect(navigation).toContainElement(link);
+      expect(link).toHaveAttribute("href", "/public-work");
+    });
+
     const contactLinks = screen.getAllByRole("link", {
       name: "Discuss Your Workflow",
     });

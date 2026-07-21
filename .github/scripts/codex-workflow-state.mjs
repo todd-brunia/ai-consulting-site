@@ -33,16 +33,14 @@ export const PLANNING_CLASSIFICATIONS = new Set([
   "split-required",
 ]);
 
-const UNSUPPORTED_RESPONSE_SCHEMA_KEYWORDS = new Set([
-  "allOf",
-  "anyOf",
-  "dependentSchemas",
-  "else",
-  "if",
-  "not",
-  "oneOf",
-  "patternProperties",
-  "then",
+const SUPPORTED_RESPONSE_SCHEMA_KEYWORDS = new Set([
+  "$schema",
+  "additionalProperties",
+  "enum",
+  "items",
+  "properties",
+  "required",
+  "type",
 ]);
 
 function stableJson(value) {
@@ -57,12 +55,13 @@ function stableJson(value) {
 }
 
 export function validateResponseSchemaCompatibility(schema, path = "$") {
-  if (!schema || typeof schema !== "object") return schema;
-  for (const [key, value] of Object.entries(schema)) {
-    if (UNSUPPORTED_RESPONSE_SCHEMA_KEYWORDS.has(key)) {
+  if (!schema || typeof schema !== "object" || Array.isArray(schema)) {
+    throw new Error(`Response schema at ${path} must be an object.`);
+  }
+  for (const key of Object.keys(schema)) {
+    if (!SUPPORTED_RESPONSE_SCHEMA_KEYWORDS.has(key)) {
       throw new Error(`Unsupported response schema keyword at ${path}: ${key}`);
     }
-    validateResponseSchemaCompatibility(value, `${path}.${key}`);
   }
   if (schema.properties) {
     const propertyNames = Object.keys(schema.properties);
@@ -74,7 +73,11 @@ export function validateResponseSchemaCompatibility(schema, path = "$") {
     if (schema.additionalProperties !== false) {
       throw new Error(`Object schema at ${path} must set additionalProperties to false.`);
     }
+    for (const [name, propertySchema] of Object.entries(schema.properties)) {
+      validateResponseSchemaCompatibility(propertySchema, `${path}.properties.${name}`);
+    }
   }
+  if (schema.items) validateResponseSchemaCompatibility(schema.items, `${path}.items`);
   return schema;
 }
 
@@ -97,11 +100,11 @@ function assertText(value, name, { min = 1, max = 2000 } = {}) {
   return value;
 }
 
-function assertTextList(value, name, { min = 1, max = 12 } = {}) {
+function assertTextList(value, name, { min = 1, max = 12, itemMin = 1, itemMax = 500 } = {}) {
   if (!Array.isArray(value) || value.length < min || value.length > max) {
     throw new Error(`${name} must contain ${min}-${max} items.`);
   }
-  return value.map((item, index) => assertText(item, `${name}[${index}]`, { max: 500 }));
+  return value.map((item, index) => assertText(item, `${name}[${index}]`, { min: itemMin, max: itemMax }));
 }
 
 export function validatePlanningResult(result) {
@@ -134,18 +137,21 @@ export function validatePlanningResult(result) {
   const ids = new Set();
   for (const [index, child] of result.children.entries()) {
     if (!child || typeof child !== "object") throw new Error(`children[${index}] is invalid.`);
-    if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(child.id ?? "") || child.id.length > 64) {
+    if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(child.id ?? "") || child.id.length < 3 || child.id.length > 64) {
       throw new Error(`children[${index}].id must be stable kebab-case.`);
     }
     if (ids.has(child.id)) throw new Error(`Duplicate child id: ${child.id}`);
     ids.add(child.id);
     assertText(child.title, `children[${index}].title`, { min: 5, max: 160 });
     assertText(child.outcome, `children[${index}].outcome`, { min: 10 });
-    assertTextList(child.acceptanceCriteria, `children[${index}].acceptanceCriteria`);
+    assertTextList(child.acceptanceCriteria, `children[${index}].acceptanceCriteria`, { itemMin: 3 });
     assertTextList(child.dependencies, `children[${index}].dependencies`);
-    assertTextList(child.includedScope, `children[${index}].includedScope`);
-    assertTextList(child.excludedScope, `children[${index}].excludedScope`);
-    assertTextList(child.suggestedLabels, `children[${index}].suggestedLabels`, { min: 0, max: 10 });
+    assertTextList(child.includedScope, `children[${index}].includedScope`, { itemMin: 3 });
+    assertTextList(child.excludedScope, `children[${index}].excludedScope`, { itemMin: 3 });
+    assertTextList(child.suggestedLabels, `children[${index}].suggestedLabels`, { min: 0, max: 10, itemMax: 50 });
+    if (new Set(child.suggestedLabels).size !== child.suggestedLabels.length) {
+      throw new Error(`children[${index}].suggestedLabels must be unique.`);
+    }
   }
   return result;
 }

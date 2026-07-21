@@ -17,6 +17,10 @@ Create these labels in GitHub before running the first trial:
 | `in-progress` | Implementation is underway. |
 | `preview-ready` | CI and the preview are ready for human review. |
 | `blocked` | Progress requires a decision, permission, or external change. |
+| `needs-decision` | Planning requires a material human decision before approval. |
+| `split-proposed` | Codex proposed decomposing this issue for human review. |
+| `approved-for-split` | An authorized human approved creation of the proposed child issues. |
+| `split-parent` | This issue was decomposed into bounded child issues. |
 
 Issue-category labels are `website`, `engineering`, `devops`, and `workflow`.
 Additional classification labels are `content`, `design`, `feature`, `bug`,
@@ -37,12 +41,75 @@ needs-planning → plan-ready → approved-for-build → in-progress → preview
 Remove superseded state labels as work advances. A closed issue is “done”; a
 separate `done` label is not required.
 
+Planning also protects the implementation window from oversized semantic scope:
+
+```mermaid
+stateDiagram-v2
+    direction LR
+
+    state "needs-planning" as NeedsPlanning
+    state "Codex planning<br/>(read-only)" as Planning
+    state "plan-ready" as PlanReady
+    state "changes-requested" as ChangesRequested
+    state "needs-decision" as NeedsDecision
+    state "split-proposed" as SplitProposed
+    state "approved-for-split" as ApprovedSplit
+    state "Trusted split publisher<br/>(GitHub App token)" as SplitPublisher
+    state "split-parent" as SplitParent
+    state "approved-for-build" as ApprovedBuild
+    state "approved-for-ai-build" as ApprovedAiBuild
+    state "Codex implementation<br/>(no GitHub write credential)" as Implementation
+    state "Trusted PR publisher<br/>(GitHub App token)" as PrPublisher
+    state "in-progress" as InProgress
+    state "preview-ready" as PreviewReady
+    state "blocked" as Blocked
+
+    [*] --> NeedsPlanning: human applies label
+    NeedsPlanning --> Planning: GHA validates actor and snapshot
+    ChangesRequested --> Planning: human requests focused revision
+    Planning --> PlanReady: focused
+    Planning --> NeedsDecision: material decision required
+    Planning --> SplitProposed: split required
+
+    NeedsDecision --> ChangesRequested: human resolves decision
+    PlanReady --> ChangesRequested: human requests changes
+    PlanReady --> ApprovedBuild: human approves plan
+    ApprovedBuild --> ApprovedAiBuild: human authorizes AI build
+    ApprovedAiBuild --> Implementation: GHA validates frozen plan
+    Implementation --> PrPublisher: validated patch and report
+    PrPublisher --> InProgress: draft PR opened
+
+    SplitProposed --> ApprovedSplit: human approves decomposition
+    ApprovedSplit --> SplitPublisher: GHA revalidates actor and fingerprint
+    SplitPublisher --> SplitParent: every child confirmed
+    SplitParent --> [*]: parent closed as not planned
+
+    Planning --> Blocked: generation or publishing failure
+    Implementation --> Blocked: generation or publishing failure
+    SplitPublisher --> Blocked: partial or publishing failure
+    Blocked --> NeedsPlanning: retry planning label
+    Blocked --> ApprovedAiBuild: retry AI-build label
+    Blocked --> ApprovedSplit: retry split approval
+
+    InProgress --> PreviewReady: checks pass and human reviews preview
+    PreviewReady --> [*]: human merges and closes issue
+```
+
+`needs-decision`, `split-proposed`, `approved-for-split`, and `split-parent`
+block automated implementation. A human resolves a decision through planning
+discussion. For a proposed split, a human reviews the decomposition before
+applying `approved-for-split`; model output alone never authorizes child creation.
+
 ## Planning Prompt
 
 ```text
 Analyze this issue but do not modify the repository yet.
 
-Create a concise implementation proposal containing:
+Classify the issue as `focused`, `needs-decision`, or `split-required` using
+observable structure rather than estimated time, token use, or model effort.
+Split when there are independently valuable outcomes, unrelated change
+surfaces, unresolved material decisions, or criteria that cannot be validated
+together. Create a concise implementation proposal containing:
 1. Your understanding of the problem
 2. The intended visitor or business outcome
 3. Recommended design and content changes
@@ -79,16 +146,45 @@ stages:
 | `needs-planning` | Codex posts one concise marked plan and applies `plan-ready`. |
 | `changes-requested` | Codex answers only the new feedback and returns the issue to `plan-ready`. |
 | `approved-for-ai-build` | Codex prepares a validated patch only when `approved-for-build` is also present; a separate job opens one draft PR and applies `in-progress`. |
+| `approved-for-split` | A GitHub-only publisher revalidates the proposal, creates or reuses marked children, reconciles the parent checklist, and closes the confirmed parent as not planned. |
 
-The OpenAI job has no GitHub write credential. The publishing job has no OpenAI
-key and uses a short-lived, repository-scoped GitHub App token so its draft PR
-triggers normal checks. Only allowlisted humans with current write-level
-repository permission can trigger work, and issue text is always treated as
-untrusted input. Replayed events use planning fingerprints to no-op safely.
+The label event starts with trusted code from the default branch. It verifies
+the actor, issue state, planning snapshot, and replay fingerprint, then writes
+that untrusted snapshot to `codex-input.json`. The OpenAI generation job has no
+GitHub write credential, checkout credentials are not persisted, and Codex edits
+only a disposable checkout. For implementation, `codex.patch` contains the
+repository changes while `codex-output.json` contains the schema-validated
+public report; neither grants authority to publish.
+
+A separate trusted job downloads both artifacts, revalidates their public text
+and patch paths, applies the patch to a fresh default-branch checkout, and runs
+the required suite. Only then does it create a short-lived, repository-scoped
+GitHub App token, branch, commit, push, and draft pull request. That publisher
+has no OpenAI key. Prompts guide model behavior; permissions, absent
+credentials, fresh checkouts, validation, and short-lived tokens enforce the
+security boundary.
+
+The split publisher uses the same boundary without invoking Codex. It rereads
+the structured proposal embedded in the planning comment, revalidates its
+fingerprint, and only then uses the App token. Authorization belongs to the
+allowlisted, write-level human who applies the label or starts a recovery
+dispatch. Issue and child text remain untrusted input.
+
+Replayed events use planning fingerprints and stable child markers to resume
+safely.
 Failures apply `blocked` and link the workflow run; resolve the cause, remove
 `blocked`, and reapply the stage label. An implementation failure removes only
 `approved-for-ai-build`, preserving `approved-for-build` for a deliberate retry.
 Successful AI implementation removes both approval labels.
+
+Each split child has one bounded outcome, testable criteria, explicit
+dependencies, included/excluded scope, a parent link, and a stable hidden
+marker. Only suggested non-state labels present on the parent are copied;
+`needs-planning` is never automatic. Text references represent dependencies in
+this version. The parent receives a deterministic checklist and closes only
+after every child is confirmed. Partial failure preserves children, leaves the
+parent open, removes `approved-for-split`, and applies `blocked`. Conflicting
+markers stop for human review.
 
 Codex generations use an explicit stage policy:
 

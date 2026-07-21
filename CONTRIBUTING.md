@@ -90,6 +90,29 @@ accessibility, risks, and factual accuracy. Plans should prioritize important
 issue-specific decisions and omit generic detail. When the plan is ready,
 replace `needs-planning` with `plan-ready`.
 
+Planning classifies scope before implementation approval:
+
+- `focused` follows the normal `plan-ready` review path.
+- `needs-decision` applies `needs-decision` and waits for a material owner
+  decision and focused plan amendment.
+- `split-required` applies `split-proposed` and publishes a reviewable,
+  structured decomposition. It cannot advance directly to implementation.
+
+For a split, review every child outcome, acceptance criterion, dependency,
+scope boundary, and suggested label. Apply `approved-for-split` only when the
+full decomposition is acceptable. The person applying it must be in
+`CODEX_ALLOWED_ACTORS` and currently have write-level access. No child is
+created before that explicit approval.
+
+The trusted split publisher revalidates the proposal fingerprint, reuses
+marked children, creates only missing children, and adds a parent checklist. It
+copies only applicable non-state labels and does not add `needs-planning`;
+review each child before applying that label. After confirming every child, it
+applies `split-parent` and closes the parent as not planned. Partial failure
+preserves children, leaves the parent open, removes `approved-for-split`, and
+applies `blocked`. Resolve the cause, remove `blocked`, and reapply
+`approved-for-split` to resume. Conflicting markers require human inspection.
+
 - If revisions are needed, apply `changes-requested` and comment with specific
   feedback. Codex responds only to that feedback so the issue can serve as a
   planning conversation. Do not edit or delete earlier comments. Ask for a
@@ -135,6 +158,9 @@ The committed workflow is inert until a repository owner completes this setup:
    `CODEX_ALLOWED_ACTORS` to a comma-separated list of trusted GitHub users
    (initially `todd-brunia`) and set `CODEX_AUTOMATION_ENABLED` to `true` only
    when rollout is authorized.
+   Also create `needs-decision`, `split-proposed`, `approved-for-split`, and
+   `split-parent` using the descriptions in the workflow reference before
+   enabling scope classification.
 4. Keep the repository's default Actions token permissions restricted. The
    Codex generation job receives read access only, while the publisher receives
    the short-lived App token but never the OpenAI key.
@@ -168,8 +194,11 @@ credentials, model traces, or real private data.
 
 Roll out planning first. On disposable issues, verify initial planning, focused
 revision, duplicate replay, unauthorized-actor rejection, implementation draft
-creation, and forced-failure recovery. Record the run and PR links on the Phase
-2 issue before declaring the roadmap phase complete.
+creation, and forced-failure recovery. For scope controls, also test all three
+classifications, rejected split authorization, retry reuse, a forced partial
+child-creation failure, checklist reconciliation, and final parent closure.
+Never use a production issue to test child creation. Record the run and PR links
+on the relevant roadmap issue before declaring the phase complete.
 
 Do not accept unrelated cleanup in the same PR. Material scope changes return to
 the issue for a revised plan and human approval. Workflow configuration changes

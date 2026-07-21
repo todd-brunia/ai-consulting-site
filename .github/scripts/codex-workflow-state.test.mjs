@@ -10,6 +10,7 @@ import {
   encodeSplitProposal,
   evaluateTrigger,
   failureTransitionFor,
+  implementationPullRequestTitle,
   marker,
   planningSnapshot,
   transitionFor,
@@ -79,6 +80,38 @@ describe("workflow state", () => {
 
     expect(workflow).toContain("github.event.label.name == 'approved-for-ai-build'");
     expect(workflow).not.toContain("github.event.label.name == 'approved-for-build'");
+  });
+
+  it("uses the approved plan outcome for automation pull request titles", () => {
+    const workflow = readFileSync(".github/workflows/codex-label-automation.yml", "utf8");
+    const source = {
+      comments: [{
+        body: `${PLAN_MARKER}\n## Proposal\n\nReplace the hard-coded PR title with the approved plan outcome.\n\n## Acceptance criteria\n\n- Titles remain concise.`,
+      }],
+    };
+
+    expect(implementationPullRequestTitle(67, source)).toBe(
+      "Implement #67: Replace the hard-coded PR title with the approved plan outcome.",
+    );
+    expect(workflow).toContain('helpers.implementationPullRequestTitle(issueNumber, input.source)');
+  });
+
+  it("normalizes, truncates, and falls back safely for automation pull request titles", () => {
+    const punctuated = {
+      comments: [{
+        body: `${PLAN_MARKER}\n## Proposal\n\nKeep punctuation: commas, dashes — and (details).\t\n\n## Risks\n\n- None.`,
+      }],
+    };
+    const long = {
+      comments: [{ body: `${PLAN_MARKER}\n## Proposal\n\n${"A useful approved outcome ".repeat(10)}` }],
+    };
+
+    expect(implementationPullRequestTitle(67, punctuated)).toBe(
+      "Implement #67: Keep punctuation: commas, dashes — and (details).",
+    );
+    expect(implementationPullRequestTitle(67, long).length).toBeLessThanOrEqual(120);
+    expect(implementationPullRequestTitle(67, long)).toMatch(/…$/);
+    expect(implementationPullRequestTitle(67, { comments: [] })).toBe("Implement #67: approved plan");
   });
 
   it("keeps split publication GitHub-only and behind explicit approval", () => {

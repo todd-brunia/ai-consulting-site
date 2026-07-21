@@ -281,6 +281,35 @@ export function buildContext({ issue, comments, stage, cutoff }) {
   return { digest, source, marker: marker(stage, issue.number, digest) };
 }
 
+const PULL_REQUEST_TITLE_MAX_LENGTH = 120;
+
+function normalizedTitleText(value) {
+  return value
+    .replace(/[\u0000-\u001F\u007F]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function proposalOutcome(source) {
+  const plan = source?.comments?.find((comment) => comment.body?.includes(PLAN_MARKER));
+  if (!plan) return "";
+
+  const proposal = plan.body.match(/^## Proposal\s*\n+([\s\S]*?)(?=^##\s|\s*$)/m)?.[1] ?? "";
+  return normalizedTitleText(proposal);
+}
+
+export function implementationPullRequestTitle(issueNumber, source) {
+  const prefix = `Implement #${issueNumber}: `;
+  const fallback = "approved plan";
+  const availableLength = PULL_REQUEST_TITLE_MAX_LENGTH - prefix.length;
+  const outcome = proposalOutcome(source) || fallback;
+  const title = outcome.length > availableLength
+    ? `${outcome.slice(0, Math.max(availableLength - 1, 0)).trimEnd()}…`
+    : outcome;
+
+  return `${prefix}${title}`;
+}
+
 export function evaluateTrigger({
   enabled,
   actor,

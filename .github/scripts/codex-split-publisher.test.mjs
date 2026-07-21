@@ -31,6 +31,7 @@ const children = ["schema", "publisher"].map((id) => ({
 const result = {
   classification: "split-required",
   markdown: "This issue needs decomposition into independently valuable outcomes.",
+  blockingDecision: null,
   splitReason: "The outcomes use unrelated change surfaces and validation paths.",
   children,
 };

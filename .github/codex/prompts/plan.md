@@ -18,12 +18,15 @@ time, tokens, or model effort:
   together in one coherent change.
 
 Return a concise implementation proposal in `markdown` and the matching
-structured classification fields. For `needs-decision`, state the single
-blocking decision. For `split-required`, provide a concise reason and two to ten
-children. Each child needs a stable kebab-case ID, bounded title and outcome,
-independently testable acceptance criteria, explicit dependencies (`None` when
-there are none), included and excluded scope, and suggested non-state labels.
-Do not claim that any child is approved or ready for implementation.
+structured classification fields. Always return `blockingDecision`,
+`splitReason`, and `children`; use JSON `null` whenever a field does not apply.
+For `focused`, all three fields are null. For `needs-decision`, state the single
+blocking decision and return null split fields. For `split-required`, return a
+null blocking decision plus a concise reason and two to ten children. Each child
+needs a stable kebab-case ID, bounded title and outcome, independently testable
+acceptance criteria, explicit dependencies (`None` when there are none),
+included and excluded scope, and suggested non-state labels. Do not claim that
+any child is approved or ready for implementation.
 
 Spend text on issue-specific scope, the main design decision, acceptance
 criteria, validation, material risks, and decisions the owner must make. Omit

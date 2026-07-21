@@ -163,6 +163,14 @@ jobs:
         if: steps.context.outputs.action == 'run' && steps.context.outputs.stage == 'implement'
         run: cp .github/scripts/codex-workflow-state.mjs "$RUNNER_TEMP/codex-workflow-state.mjs"
 
+      - name: Validate planning response schema compatibility
+        if: steps.context.outputs.action == 'run' && steps.context.outputs.stage != 'implement'
+        run: >-
+          node --input-type=module -e
+          "import fs from 'node:fs';
+          const {validateResponseSchemaCompatibility} = await import('./.github/scripts/codex-workflow-state.mjs');
+          validateResponseSchemaCompatibility(JSON.parse(fs.readFileSync('.github/codex/schemas/plan.json', 'utf8')));"
+
       - name: Run Codex
         id: codex
         if: steps.context.outputs.action == 'run'

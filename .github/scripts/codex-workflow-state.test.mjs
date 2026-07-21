@@ -266,6 +266,43 @@ describe("workflow state", () => {
         splitResult.children[1],
       ],
     })).toThrow(/reserved automation marker/);
+    expect(() => validatePlanningResult({
+      ...splitResult,
+      children: [
+        { ...splitResult.children[0], id: "a" },
+        splitResult.children[1],
+      ],
+    })).toThrow(/stable kebab-case/);
+    expect(() => validatePlanningResult({ ...splitResult, children: [splitResult.children[0]] })).toThrow(/2-10/);
+    expect(() => validatePlanningResult({
+      ...splitResult,
+      children: Array.from({ length: 11 }, (_, index) => ({
+        ...splitResult.children[0],
+        id: `child-${index}`,
+      })),
+    })).toThrow(/2-10/);
+    expect(() => validatePlanningResult({
+      ...splitResult,
+      children: [
+        { ...splitResult.children[0], acceptanceCriteria: [] },
+        splitResult.children[1],
+      ],
+    })).toThrow(/1-12/);
+    expect(() => validatePlanningResult({
+      ...splitResult,
+      children: [
+        { ...splitResult.children[0], suggestedLabels: ["workflow", "workflow"] },
+        splitResult.children[1],
+      ],
+    })).toThrow(/must be unique/);
+    expect(() => validatePlanningResult({
+      ...splitResult,
+      children: [
+        { ...splitResult.children[0], suggestedLabels: ["x".repeat(51)] },
+        splitResult.children[1],
+      ],
+    })).toThrow(/1-50/);
+    expect(() => validatePlanningResult({ ...focused, markdown: "too short" })).toThrow(/40-12000/);
   });
 
   it("keeps the planning schema compatible with structured outputs", () => {
@@ -281,7 +318,14 @@ describe("workflow state", () => {
     expect(schema.properties.blockingDecision.type).toEqual(["string", "null"]);
     expect(schema.properties.splitReason.type).toEqual(["string", "null"]);
     expect(schema.properties.children.type).toEqual(["array", "null"]);
+    expect(JSON.stringify(schema)).not.toMatch(/"(?:uniqueItems|minLength|maxLength|pattern|minItems|maxItems)"/);
     expect(() => validateResponseSchemaCompatibility({ ...schema, oneOf: [] })).toThrow(/oneOf/);
+    expect(() => validateResponseSchemaCompatibility({
+      type: "array",
+      uniqueItems: true,
+      items: { type: "string" },
+    })).toThrow(/uniqueItems/);
+    expect(() => validateResponseSchemaCompatibility({ type: "string", minLength: 1 })).toThrow(/minLength/);
     expect(() => validateResponseSchemaCompatibility({
       type: "object",
       additionalProperties: false,

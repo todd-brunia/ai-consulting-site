@@ -16,6 +16,7 @@ import {
   validatePlanningResult,
   validatePatch,
   validatePublicText,
+  validateResponseSchemaCompatibility,
   validateSplitFingerprint,
 } from "./codex-workflow-state.mjs";
 
@@ -36,6 +37,7 @@ const plan = {
 const splitResult = {
   classification: "split-required",
   markdown: "This issue needs decomposition into independently valuable outcomes.",
+  blockingDecision: null,
   splitReason: "The outcomes use unrelated change surfaces and validation paths.",
   children: ["schema", "publisher"].map((id) => ({
     id,
@@ -61,6 +63,15 @@ describe("workflow state", () => {
     );
     expect(workflow).not.toMatch(/model:.*gpt-5\.6-sol/);
     expect(workflow).not.toMatch(/effort:.*high/);
+  });
+
+  it("preflights planning schema compatibility before Codex runs", () => {
+    const workflow = readFileSync(".github/workflows/codex-label-automation.yml", "utf8");
+    expect(workflow).toContain("Validate planning response schema compatibility");
+    expect(workflow).toContain("validateResponseSchemaCompatibility");
+    expect(workflow.indexOf("Validate planning response schema compatibility")).toBeLessThan(
+      workflow.indexOf("- name: Run Codex"),
+    );
   });
 
   it("uses the AI-specific label as the only implementation event", () => {
@@ -222,13 +233,28 @@ describe("workflow state", () => {
   );
 
   it("validates all planning classifications and stable split child ids", () => {
-    expect(validatePlanningResult({ classification: "focused", markdown: "A focused plan with enough useful implementation detail." })).toBeTruthy();
-    expect(validatePlanningResult({
+    const focused = {
+      classification: "focused",
+      markdown: "A focused plan with enough useful implementation detail.",
+      blockingDecision: null,
+      splitReason: null,
+      children: null,
+    };
+    const needsDecision = {
       classification: "needs-decision",
       markdown: "A plan that explains why a material owner decision is required.",
       blockingDecision: "Choose which authorization policy should govern this workflow.",
+      splitReason: null,
+      children: null,
+    };
+    expect(validatePlanningResult(focused)).toBe(focused);
+    expect(validatePlanningResult({
+      ...needsDecision,
     })).toBeTruthy();
     expect(validatePlanningResult(splitResult)).toBe(splitResult);
+    expect(() => validatePlanningResult({ ...focused, children: [] })).toThrow(/Focused/);
+    expect(() => validatePlanningResult({ ...needsDecision, splitReason: "Unexpected split reason." })).toThrow(/split fields/);
+    expect(() => validatePlanningResult({ ...splitResult, blockingDecision: "Unexpected decision." })).toThrow(/must be null/);
     expect(() => validatePlanningResult({
       ...splitResult,
       children: [...splitResult.children, { ...splitResult.children[0] }],
@@ -240,6 +266,28 @@ describe("workflow state", () => {
         splitResult.children[1],
       ],
     })).toThrow(/reserved automation marker/);
+  });
+
+  it("keeps the planning schema compatible with structured outputs", () => {
+    const schema = JSON.parse(readFileSync(".github/codex/schemas/plan.json", "utf8"));
+    expect(validateResponseSchemaCompatibility(schema)).toBe(schema);
+    expect(schema.required).toEqual(expect.arrayContaining([
+      "classification",
+      "markdown",
+      "blockingDecision",
+      "splitReason",
+      "children",
+    ]));
+    expect(schema.properties.blockingDecision.type).toEqual(["string", "null"]);
+    expect(schema.properties.splitReason.type).toEqual(["string", "null"]);
+    expect(schema.properties.children.type).toEqual(["array", "null"]);
+    expect(() => validateResponseSchemaCompatibility({ ...schema, oneOf: [] })).toThrow(/oneOf/);
+    expect(() => validateResponseSchemaCompatibility({
+      type: "object",
+      additionalProperties: false,
+      properties: { value: { type: "string" } },
+      required: [],
+    })).toThrow(/must be required/);
   });
 
   it("encodes a split proposal with its trusted planning fingerprint", () => {

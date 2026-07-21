@@ -33,6 +33,18 @@ export const PLANNING_CLASSIFICATIONS = new Set([
   "split-required",
 ]);
 
+const UNSUPPORTED_RESPONSE_SCHEMA_KEYWORDS = new Set([
+  "allOf",
+  "anyOf",
+  "dependentSchemas",
+  "else",
+  "if",
+  "not",
+  "oneOf",
+  "patternProperties",
+  "then",
+]);
+
 function stableJson(value) {
   if (Array.isArray(value)) return `[${value.map(stableJson).join(",")}]`;
   if (value && typeof value === "object") {
@@ -42,6 +54,28 @@ function stableJson(value) {
       .join(",")}}`;
   }
   return JSON.stringify(value);
+}
+
+export function validateResponseSchemaCompatibility(schema, path = "$") {
+  if (!schema || typeof schema !== "object") return schema;
+  for (const [key, value] of Object.entries(schema)) {
+    if (UNSUPPORTED_RESPONSE_SCHEMA_KEYWORDS.has(key)) {
+      throw new Error(`Unsupported response schema keyword at ${path}: ${key}`);
+    }
+    validateResponseSchemaCompatibility(value, `${path}.${key}`);
+  }
+  if (schema.properties) {
+    const propertyNames = Object.keys(schema.properties);
+    const required = new Set(schema.required ?? []);
+    const missing = propertyNames.filter((name) => !required.has(name));
+    if (missing.length > 0) {
+      throw new Error(`Every property at ${path} must be required: ${missing.join(", ")}`);
+    }
+    if (schema.additionalProperties !== false) {
+      throw new Error(`Object schema at ${path} must set additionalProperties to false.`);
+    }
+  }
+  return schema;
 }
 
 export function fingerprint(value) {
@@ -76,12 +110,23 @@ export function validatePlanningResult(result) {
   }
   assertText(result.markdown, "markdown", { min: 40, max: 12_000 });
 
-  if (result.classification === "focused") return result;
+  if (result.classification === "focused") {
+    if (result.blockingDecision !== null || result.splitReason !== null || result.children !== null) {
+      throw new Error("Focused planning fields must be null.");
+    }
+    return result;
+  }
   if (result.classification === "needs-decision") {
     assertText(result.blockingDecision, "blockingDecision", { min: 10 });
+    if (result.splitReason !== null || result.children !== null) {
+      throw new Error("Needs-decision split fields must be null.");
+    }
     return result;
   }
 
+  if (result.blockingDecision !== null) {
+    throw new Error("Split-required blockingDecision must be null.");
+  }
   assertText(result.splitReason, "splitReason", { min: 10 });
   if (!Array.isArray(result.children) || result.children.length < 2 || result.children.length > 10) {
     throw new Error("A split proposal must contain 2-10 children.");

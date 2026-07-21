@@ -2,9 +2,10 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "type": "object",
   "additionalProperties": false,
-  "required": ["classification", "markdown"],
+  "required": ["classification", "markdown", "blockingDecision", "splitReason", "children"],
   "properties": {
     "classification": {
+      "type": "string",
       "enum": ["focused", "needs-decision", "split-required"]
     },
     "markdown": {
@@ -13,17 +14,17 @@
       "maxLength": 12000
     },
     "blockingDecision": {
-      "type": "string",
+      "type": ["string", "null"],
       "minLength": 10,
       "maxLength": 2000
     },
     "splitReason": {
-      "type": "string",
+      "type": ["string", "null"],
       "minLength": 10,
       "maxLength": 2000
     },
     "children": {
-      "type": "array",
+      "type": ["array", "null"],
       "minItems": 2,
       "maxItems": 10,
       "items": {
@@ -81,21 +82,5 @@
         }
       }
     }
-  },
-  "oneOf": [
-    {
-      "properties": { "classification": { "const": "focused" } },
-      "not": { "anyOf": [{ "required": ["blockingDecision"] }, { "required": ["splitReason"] }, { "required": ["children"] }] }
-    },
-    {
-      "properties": { "classification": { "const": "needs-decision" } },
-      "required": ["blockingDecision"],
-      "not": { "anyOf": [{ "required": ["splitReason"] }, { "required": ["children"] }] }
-    },
-    {
-      "properties": { "classification": { "const": "split-required" } },
-      "required": ["splitReason", "children"],
-      "not": { "required": ["blockingDecision"] }
-    }
-  ]
+  }
 }

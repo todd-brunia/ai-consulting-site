@@ -35,6 +35,11 @@ branch, open a pull request linked to the issue, and advance the issue to
 `approved-for-ai-build` label after general approval. Reserve
 `codex/issue-<number>` branches for automation.
 
+For local interactive Codex implementation, use the repository-local
+`implement-approved-issue` skill. Its invocation must explicitly authorize any
+push, pull-request, comment, or label mutation; implementation permission alone
+does not grant publication authority.
+
 Do not implement an issue while `needs-decision`, `split-proposed`,
 `approved-for-split`, or `split-parent` is present. Those states require a
 human decision or the separately authorized split workflow.

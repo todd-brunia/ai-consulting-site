@@ -211,6 +211,12 @@ to `main`, publish a release, or deploy. Those remain human decisions.
 For manual implementation, apply `approved-for-build`, create a non-
 `codex/issue-*` branch, open a pull request linked to the issue, and move the
 issue to `in-progress`. Applying general approval alone never starts Codex.
+For occasional local interactive Codex work, invoke the repository-local
+`implement-approved-issue` skill. The prompt must separately authorize GitHub
+publication; without that authorization, Codex stops after local implementation
+and validation. The skill verifies the approval timeline and frozen plan,
+preserves unrelated work, uses a non-reserved branch, and creates an
+automation-style draft PR without automation markers or bot identity.
 For AI implementation, apply `approved-for-ai-build` after general approval;
 the `codex/issue-<number>` branch namespace is reserved for that automation.
 Create the new label before enabling this workflow change. Workflow changes take
@@ -235,6 +241,17 @@ issue. Include screenshots or clear visual verification instructions,
 accessibility considerations, and known limitations. Do not merge the pull
 request.
 ```
+
+For the complete local workflow, explicitly invoke the skill:
+
+```text
+Use $implement-approved-issue for issue #<number>. Implement the frozen approved
+scope locally and, after validation, publish the linked draft PR and move the
+issue to in-progress. Do not merge.
+```
+
+See the skill's `references/workflow.md` for a full prompt, PR template, failure
+report, and the issue #60 / PR #61 worked example.
 
 ## Review Prompt
 

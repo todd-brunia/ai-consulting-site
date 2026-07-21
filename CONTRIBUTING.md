@@ -130,7 +130,10 @@ Choose one implementation path after plan approval:
 - **Manual:** Create a non-`codex/issue-*` branch, apply only the approved
   plan, run every validation command, open a linked pull request, and change
   the issue state to `in-progress`. Applying `approved-for-build` alone never
-  invokes Codex.
+  invokes Codex. For local interactive Codex implementation, explicitly invoke
+  `$implement-approved-issue` and state whether it may push, open the draft PR,
+  comment, and change labels. Without that publication authorization, it stops
+  after local implementation and validation.
 - **AI:** Apply `approved-for-ai-build` only after `approved-for-build` is
   present. This explicitly authorizes label-triggered Codex implementation;
   `codex/issue-<number>` branch names are reserved for that automation.

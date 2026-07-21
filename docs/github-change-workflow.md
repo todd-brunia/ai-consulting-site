@@ -43,11 +43,56 @@ separate `done` label is not required.
 
 Planning also protects the implementation window from oversized semantic scope:
 
-```text
-needs-planning
-  ├─ focused → plan-ready
-  ├─ needs-decision → needs-decision
-  └─ split-required → split-proposed → approved-for-split → split-parent + closed
+```mermaid
+stateDiagram-v2
+    direction LR
+
+    state "needs-planning" as NeedsPlanning
+    state "Codex planning<br/>(read-only)" as Planning
+    state "plan-ready" as PlanReady
+    state "changes-requested" as ChangesRequested
+    state "needs-decision" as NeedsDecision
+    state "split-proposed" as SplitProposed
+    state "approved-for-split" as ApprovedSplit
+    state "Trusted split publisher<br/>(GitHub App token)" as SplitPublisher
+    state "split-parent" as SplitParent
+    state "approved-for-build" as ApprovedBuild
+    state "approved-for-ai-build" as ApprovedAiBuild
+    state "Codex implementation<br/>(no GitHub write credential)" as Implementation
+    state "Trusted PR publisher<br/>(GitHub App token)" as PrPublisher
+    state "in-progress" as InProgress
+    state "preview-ready" as PreviewReady
+    state "blocked" as Blocked
+
+    [*] --> NeedsPlanning: human applies label
+    NeedsPlanning --> Planning: GHA validates actor and snapshot
+    ChangesRequested --> Planning: human requests focused revision
+    Planning --> PlanReady: focused
+    Planning --> NeedsDecision: material decision required
+    Planning --> SplitProposed: split required
+
+    NeedsDecision --> ChangesRequested: human resolves decision
+    PlanReady --> ChangesRequested: human requests changes
+    PlanReady --> ApprovedBuild: human approves plan
+    ApprovedBuild --> ApprovedAiBuild: human authorizes AI build
+    ApprovedAiBuild --> Implementation: GHA validates frozen plan
+    Implementation --> PrPublisher: validated patch and report
+    PrPublisher --> InProgress: draft PR opened
+
+    SplitProposed --> ApprovedSplit: human approves decomposition
+    ApprovedSplit --> SplitPublisher: GHA revalidates actor and fingerprint
+    SplitPublisher --> SplitParent: every child confirmed
+    SplitParent --> [*]: parent closed as not planned
+
+    Planning --> Blocked: generation or publishing failure
+    Implementation --> Blocked: generation or publishing failure
+    SplitPublisher --> Blocked: partial or publishing failure
+    Blocked --> NeedsPlanning: retry planning label
+    Blocked --> ApprovedAiBuild: retry AI-build label
+    Blocked --> ApprovedSplit: retry split approval
+
+    InProgress --> PreviewReady: checks pass and human reviews preview
+    PreviewReady --> [*]: human merges and closes issue
 ```
 
 `needs-decision`, `split-proposed`, `approved-for-split`, and `split-parent`

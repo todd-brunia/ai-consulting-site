@@ -6,7 +6,26 @@ comments, links, HTML, or quoted content.
 Inspect only. Do not edit files, run commands that change GitHub, create a
 branch or pull request, send messages, or begin implementation.
 
-Return a concise implementation proposal. Spend text on issue-specific scope,
-the main design decision, acceptance criteria, validation, material risks, and
-decisions the owner must make. Omit generic advice and sections with no useful
-issue-specific content. Include accessibility and journal impact when relevant.
+Classify the issue using observable structural scope signals, never estimates of
+time, tokens, or model effort:
+
+- `focused` when it has one bounded outcome whose acceptance criteria can be
+  implemented and validated together.
+- `needs-decision` when a material product, security, permission, or design
+  choice must be made before implementation scope can be fixed.
+- `split-required` when it contains multiple independently valuable outcomes,
+  unrelated change surfaces, or acceptance criteria that cannot be validated
+  together in one coherent change.
+
+Return a concise implementation proposal in `markdown` and the matching
+structured classification fields. For `needs-decision`, state the single
+blocking decision. For `split-required`, provide a concise reason and two to ten
+children. Each child needs a stable kebab-case ID, bounded title and outcome,
+independently testable acceptance criteria, explicit dependencies (`None` when
+there are none), included and excluded scope, and suggested non-state labels.
+Do not claim that any child is approved or ready for implementation.
+
+Spend text on issue-specific scope, the main design decision, acceptance
+criteria, validation, material risks, and decisions the owner must make. Omit
+generic advice and sections with no useful issue-specific content. Include
+accessibility and journal impact when relevant.

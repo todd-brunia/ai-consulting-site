@@ -17,6 +17,7 @@ on:
           - plan
           - revise
           - implement
+          - split
 
 permissions:
   contents: read
@@ -29,7 +30,7 @@ jobs:
   generate:
     name: Validate trigger and run Codex
     if: >-
-      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'workflow_dispatch' && inputs.stage != 'split') ||
       github.event.label.name == 'needs-planning' ||
       github.event.label.name == 'changes-requested' ||
       github.event.label.name == 'approved-for-ai-build'
@@ -237,11 +238,15 @@ jobs:
             const helpers = await import(`${process.env.GITHUB_WORKSPACE}/.github/scripts/codex-workflow-state.mjs`);
             const issueNumber = Number(process.env.ISSUE_NUMBER);
             const parsed = JSON.parse(fs.readFileSync("codex-output.json", "utf8"));
-            helpers.validatePublicText(parsed.markdown);
+            helpers.validatePlanningResult(parsed);
             const heading = process.env.STAGE === "plan"
               ? `${helpers.PLAN_MARKER}\n## Codex implementation proposal`
               : "<!-- codex-plan-amendment -->\n## Plan amendment";
-            const body = `${process.env.MARKER}\n${heading}\n\n${parsed.markdown}`;
+            const structured = parsed.classification === "split-required"
+              ? `\n${helpers.encodeSplitProposal(parsed, process.env.MARKER.match(/:([a-f0-9]{64}) -->$/)[1])}`
+              : "";
+            const body = `${process.env.MARKER}${structured}\n${heading}\n\n${parsed.markdown}${helpers.renderPlanningDetails(parsed)}`;
+            helpers.validatePublicText(body);
 
             await github.rest.issues.createComment({
               owner: context.repo.owner,
@@ -249,7 +254,7 @@ jobs:
               issue_number: issueNumber,
               body,
             });
-            const transition = helpers.transitionFor(process.env.STAGE);
+            const transition = helpers.transitionFor(process.env.STAGE, parsed.classification);
             for (const name of transition.remove) {
               try {
                 await github.rest.issues.removeLabel({ owner: context.repo.owner, repo: context.repo.repo, issue_number: issueNumber, name });
@@ -372,12 +377,111 @@ jobs:
               body: `${process.env.MARKER}\nImplementation draft: ${pull.data.html_url}\n\nApproved planning fingerprint: \`${process.env.FINGERPRINT}\`\n\nRun: ${runUrl}`,
             });
 
+  publish_split:
+    name: Validate and publish approved split
+    if: >-
+      (github.event_name == 'workflow_dispatch' && inputs.stage == 'split') ||
+      (github.event_name == 'issues' && github.event.label.name == 'approved-for-split')
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      issues: read
+    steps:
+      - name: Check out trusted split publisher code
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+          persist-credentials: false
+
+      - name: Validate split actor, proposal, and fingerprint
+        id: split_context
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        env:
+          AUTOMATION_ENABLED: ${{ vars.CODEX_AUTOMATION_ENABLED }}
+          ALLOWED_ACTORS: ${{ vars.CODEX_ALLOWED_ACTORS }}
+          DISPATCH_ISSUE: ${{ inputs.issue_number }}
+        with:
+          github-token: ${{ github.token }}
+          script: |
+            const helpers = await import(`${process.env.GITHUB_WORKSPACE}/.github/scripts/codex-workflow-state.mjs`);
+            const issueNumber = Number(context.payload.issue?.number || process.env.DISPATCH_ISSUE);
+            const actor = context.actor;
+            if (!issueNumber) {
+              core.setFailed("A valid issue number is required.");
+              return;
+            }
+            const { data: issue } = await github.rest.issues.get({ owner: context.repo.owner, repo: context.repo.repo, issue_number: issueNumber });
+            const comments = await github.paginate(github.rest.issues.listComments, {
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: issueNumber,
+              per_page: 100,
+            });
+            const { data: collaborator } = await github.rest.repos.getCollaboratorPermissionLevel({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              username: actor,
+            });
+            const result = helpers.evaluateTrigger({
+              enabled: process.env.AUTOMATION_ENABLED === "true",
+              actor,
+              actorType: context.payload.sender?.type || "User",
+              allowedActors: (process.env.ALLOWED_ACTORS || "").split(",").map((value) => value.trim()).filter(Boolean),
+              permission: collaborator.permission,
+              issue,
+              comments,
+              requestedStage: "split",
+            });
+            core.setOutput("action", result.action);
+            core.setOutput("issue_number", String(issueNumber));
+            core.setOutput("fingerprint", result.digest || "");
+            if (result.action === "block") core.setFailed(result.reason);
+
+      - name: Create short-lived split publisher token
+        if: steps.split_context.outputs.action == 'run'
+        id: split_app_token
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
+        with:
+          app-id: ${{ vars.CODEX_AUTOMATION_APP_ID }}
+          private-key: ${{ secrets.CODEX_AUTOMATION_APP_PRIVATE_KEY }}
+
+      - name: Create or reuse children and close confirmed parent
+        if: steps.split_context.outputs.action == 'run'
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        env:
+          ISSUE_NUMBER: ${{ steps.split_context.outputs.issue_number }}
+          FINGERPRINT: ${{ steps.split_context.outputs.fingerprint }}
+        with:
+          github-token: ${{ steps.split_app_token.outputs.token }}
+          script: |
+            const state = await import(`${process.env.GITHUB_WORKSPACE}/.github/scripts/codex-workflow-state.mjs`);
+            const publisher = await import(`${process.env.GITHUB_WORKSPACE}/.github/scripts/codex-split-publisher.mjs`);
+            const issueNumber = Number(process.env.ISSUE_NUMBER);
+            const { data: parent } = await github.rest.issues.get({ owner: context.repo.owner, repo: context.repo.repo, issue_number: issueNumber });
+            const comments = await github.paginate(github.rest.issues.listComments, {
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: issueNumber,
+              per_page: 100,
+            });
+            const proposal = state.approvedSplitProposal(comments);
+            state.validateSplitFingerprint(proposal, process.env.FINGERPRINT);
+            await publisher.publishSplit({
+              github,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              parent,
+              result: proposal.result,
+              digest: proposal.digest,
+            });
+
   report_failure:
     name: Report blocked automation
-    needs: [generate, publish_plan, publish_implementation]
+    needs: [generate, publish_plan, publish_implementation, publish_split]
     if: >-
       always() &&
-      (needs.generate.result == 'failure' || needs.publish_plan.result == 'failure' || needs.publish_implementation.result == 'failure')
+      (needs.generate.result == 'failure' || needs.publish_plan.result == 'failure' || needs.publish_implementation.result == 'failure' || needs.publish_split.result == 'failure')
     runs-on: ubuntu-latest
     timeout-minutes: 5
     permissions:

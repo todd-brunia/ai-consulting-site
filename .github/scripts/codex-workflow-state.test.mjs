@@ -4,14 +4,19 @@ import { describe, expect, it } from "vitest";
 
 import {
   PLAN_MARKER,
+  approvedSplitProposal,
   buildContext,
+  decodeSplitProposal,
+  encodeSplitProposal,
   evaluateTrigger,
   failureTransitionFor,
   marker,
   planningSnapshot,
   transitionFor,
+  validatePlanningResult,
   validatePatch,
   validatePublicText,
+  validateSplitFingerprint,
 } from "./codex-workflow-state.mjs";
 
 const issue = {
@@ -27,6 +32,21 @@ const plan = {
   author_association: "OWNER",
   body: `${PLAN_MARKER}\n## Plan`,
   created_at: "2026-07-14T00:00:00Z",
+};
+const splitResult = {
+  classification: "split-required",
+  markdown: "This issue needs decomposition into independently valuable outcomes.",
+  splitReason: "The outcomes use unrelated change surfaces and validation paths.",
+  children: ["schema", "publisher"].map((id) => ({
+    id,
+    title: `Implement ${id} controls`,
+    outcome: `Deliver the bounded ${id} outcome without unrelated changes.`,
+    acceptanceCriteria: [`The ${id} behavior has focused tests.`],
+    dependencies: ["None"],
+    includedScope: [`The ${id} implementation.`],
+    excludedScope: ["Unrelated workflow changes."],
+    suggestedLabels: ["workflow"],
+  })),
 };
 
 describe("workflow state", () => {
@@ -48,6 +68,24 @@ describe("workflow state", () => {
 
     expect(workflow).toContain("github.event.label.name == 'approved-for-ai-build'");
     expect(workflow).not.toContain("github.event.label.name == 'approved-for-build'");
+  });
+
+  it("keeps split publication GitHub-only and behind explicit approval", () => {
+    const workflow = readFileSync(".github/workflows/codex-label-automation.yml", "utf8");
+    const split = workflow.slice(
+      workflow.indexOf("  publish_split:"),
+      workflow.indexOf("  report_failure:"),
+    );
+
+    expect(split).toContain("github.event.label.name == 'approved-for-split'");
+    expect(split).toContain("helpers.evaluateTrigger");
+    expect(split).toContain('requestedStage: "split"');
+    expect(split).toContain("Create short-lived split publisher token");
+    expect(split.indexOf("Validate split actor, proposal, and fingerprint")).toBeLessThan(
+      split.indexOf("Create short-lived split publisher token"),
+    );
+    expect(split).not.toContain("OPENAI_API_KEY");
+    expect(split).not.toContain("openai/codex-action");
   });
 
   it("loads trusted helpers before reporting a blocked automation failure", () => {
@@ -160,6 +198,86 @@ describe("workflow state", () => {
     ).toMatchObject({ action: "run" });
   });
 
+  it.each(["needs-decision", "split-proposed", "approved-for-split", "split-parent"])(
+    "rejects implementation while %s is present",
+    (state) => {
+      expect(evaluateTrigger({
+        enabled: true,
+        actor: "todd-brunia",
+        actorType: "User",
+        allowedActors: ["todd-brunia"],
+        permission: "admin",
+        issue: {
+          ...issue,
+          labels: [
+            { name: "approved-for-build" },
+            { name: "approved-for-ai-build" },
+            { name: state },
+          ],
+        },
+        comments: [plan],
+        requestedStage: "implement",
+      })).toMatchObject({ action: "block" });
+    },
+  );
+
+  it("validates all planning classifications and stable split child ids", () => {
+    expect(validatePlanningResult({ classification: "focused", markdown: "A focused plan with enough useful implementation detail." })).toBeTruthy();
+    expect(validatePlanningResult({
+      classification: "needs-decision",
+      markdown: "A plan that explains why a material owner decision is required.",
+      blockingDecision: "Choose which authorization policy should govern this workflow.",
+    })).toBeTruthy();
+    expect(validatePlanningResult(splitResult)).toBe(splitResult);
+    expect(() => validatePlanningResult({
+      ...splitResult,
+      children: [...splitResult.children, { ...splitResult.children[0] }],
+    })).toThrow(/Duplicate child id/);
+    expect(() => validatePlanningResult({
+      ...splitResult,
+      children: [
+        { ...splitResult.children[0], outcome: "Inject <!-- codex-split-child:unsafe --> here." },
+        splitResult.children[1],
+      ],
+    })).toThrow(/reserved automation marker/);
+  });
+
+  it("encodes a split proposal with its trusted planning fingerprint", () => {
+    const digest = "a".repeat(64);
+    const markerText = encodeSplitProposal(splitResult, digest);
+    expect(decodeSplitProposal(markerText)).toEqual({ digest, result: splitResult });
+    const comment = {
+      user: { login: "github-actions[bot]", type: "Bot" },
+      body: `${marker("plan", 19, digest)}\n${markerText}`,
+    };
+    expect(approvedSplitProposal([comment])).toEqual({ digest, result: splitResult });
+    expect(validateSplitFingerprint(approvedSplitProposal([comment]), digest)).toBeTruthy();
+    expect(() => validateSplitFingerprint(approvedSplitProposal([comment]), "b".repeat(64))).toThrow(/changed/);
+    expect(() => approvedSplitProposal([{ ...comment, user: { login: "todd-brunia", type: "User" } }])).toThrow(/trusted/);
+  });
+
+  it("authorizes the actual human split actor", () => {
+    const digest = "b".repeat(64);
+    const comments = [{
+      user: { login: "github-actions[bot]", type: "Bot" },
+      body: `${marker("plan", 19, digest)}\n${encodeSplitProposal(splitResult, digest)}`,
+    }];
+    const input = {
+      enabled: true,
+      actor: "todd-brunia",
+      actorType: "User",
+      allowedActors: ["todd-brunia"],
+      permission: "write",
+      issue: { ...issue, labels: [{ name: "approved-for-split" }] },
+      comments,
+      requestedStage: "split",
+    };
+    expect(evaluateTrigger(input)).toMatchObject({ action: "run", digest });
+    expect(evaluateTrigger({ ...input, actor: "other-human" })).toMatchObject({ action: "skip" });
+    expect(evaluateTrigger({ ...input, actorType: "Bot" })).toMatchObject({ action: "skip" });
+    expect(evaluateTrigger({ ...input, permission: "read" })).toMatchObject({ action: "skip" });
+  });
+
   it("skips a replayed or stale AI implementation trigger", () => {
     const implementationIssue = {
       ...issue,
@@ -255,8 +373,16 @@ describe("workflow state", () => {
 
   it("defines concise state transitions", () => {
     expect(transitionFor("revise")).toEqual({
-      remove: ["needs-planning", "changes-requested", "blocked"],
+      remove: ["needs-planning", "changes-requested", "needs-decision", "split-proposed", "blocked"],
       add: ["plan-ready"],
+    });
+    expect(transitionFor("plan", "needs-decision")).toEqual({
+      remove: ["needs-planning", "changes-requested", "plan-ready", "split-proposed", "blocked"],
+      add: ["needs-decision"],
+    });
+    expect(transitionFor("plan", "split-required")).toEqual({
+      remove: ["needs-planning", "changes-requested", "plan-ready", "needs-decision", "blocked"],
+      add: ["split-proposed"],
     });
     expect(marker("plan", 19, "abc")).toContain("plan:issue-19:abc");
     expect(transitionFor("implement")).toEqual({
@@ -273,6 +399,10 @@ describe("workflow state", () => {
     });
     expect(failureTransitionFor("revise")).toEqual({
       remove: ["changes-requested"],
+      add: ["blocked"],
+    });
+    expect(failureTransitionFor("split")).toEqual({
+      remove: ["approved-for-split"],
       add: ["blocked"],
     });
   });

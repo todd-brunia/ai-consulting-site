@@ -101,7 +101,7 @@ export function Hero() {
             AI workflow consulting for Midwestern organizations
           </p>
           <h1 className="text-4xl font-semibold leading-tight text-[#172124] sm:text-5xl lg:text-6xl">
-            Turn repetitive business processes into practical AI workflows.
+            Practical AI consulting for small and mid-sized businesses.
           </h1>
           <div className="mt-7 space-y-5 text-lg leading-8 text-[#435156]">
             <p>

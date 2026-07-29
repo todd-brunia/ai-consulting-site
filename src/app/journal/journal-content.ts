@@ -16,6 +16,41 @@ export type JournalEntry = {
 
 export const journalEntries = [
   {
+    id: "built-a-local-client-portal-onboarding-flow",
+    date: "2026-07-29",
+    title: "Built a local client portal onboarding flow",
+    problemOrOpportunity:
+      "The revised client portal plan needed to become a small, useful implementation slice before I could judge where the remaining risk and work belonged.",
+    accomplished:
+      "I moved from planning to a working local onboarding flow with fictional fixtures, giving me a concrete way to test the access and invitation decisions behind the portal.",
+    narrativeSections: [
+      {
+        heading: "A bounded local slice",
+        paragraphs: [
+          "The local implementation now has foundations for authentication and tenant isolation, along with bounded human access and read-only machine access. It includes invitation-only onboarding, client invitation acceptance, and an accessible staff interface for managing the invitation lifecycle.",
+          "The useful lesson was that authentication alone does not grant someone access to an organization. The workflow also needs an explicit relationship between a person, an invitation, and the organization they are permitted to enter.",
+        ],
+      },
+      {
+        heading: "What the work made clearer",
+        paragraphs: [
+          "Implementation also strengthened the surrounding safeguards: CI and integration testing, clearer approval evidence, credential scanning, recovery guidance, and human-gated agent workflows. Those are practical controls for changing a system carefully, not a substitute for human judgment.",
+          "This is a working local vertical slice using fictional fixtures. It is not an MVP launch, hosted staging environment, production onboarding system, or client deployment. Completing a useful local flow makes the next questions more concrete; it does not establish production readiness.",
+        ],
+      },
+      {
+        heading: "The next bounded milestone",
+        paragraphs: [
+          "The next implementation milestone is disposable end-to-end Playwright browser coverage for the onboarding flow. That work is not yet approved or complete, but it would help test the visitor-facing path without treating the local slice as ready for client use.",
+        ],
+      },
+    ],
+    relatedLink: {
+      href: "https://github.com/todd-brunia/ai-consulting-meta/blob/b818d07/plans/client-portal/implementation-checkpoint-2026-07-28.md",
+      label: "Read the client portal implementation checkpoint",
+    },
+  },
+  {
     id: "revised-client-portal-plan-through-dialogue-with-ai",
     date: "2026-07-19",
     title: "Revised a client portal plan through dialogue with AI",

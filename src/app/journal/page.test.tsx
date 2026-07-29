@@ -36,7 +36,7 @@ describe("JournalPage", () => {
     render(<JournalPage />);
 
     const articles = screen.getAllByRole("article");
-    expect(articles).toHaveLength(13);
+    expect(articles).toHaveLength(14);
 
     articles.forEach((article, index) => {
       const entry = journalEntries[index];
@@ -52,50 +52,76 @@ describe("JournalPage", () => {
     });
 
     const newEntryArticle = within(articles[0]).getByRole("heading", {
-      name: "Revised a client portal plan through dialogue with AI",
+      name: "Built a local client portal onboarding flow",
     }).parentElement;
     expect(newEntryArticle).not.toBeNull();
-    expect(newEntryArticle).toHaveTextContent("July 19, 2026");
-    expect(newEntryArticle).toHaveTextContent("The initial plan");
-    expect(newEntryArticle).toHaveTextContent("The counterproposal");
+    expect(newEntryArticle).toHaveTextContent("July 29, 2026");
     expect(newEntryArticle).toHaveTextContent(
-      "My evaluation and revised direction",
-    );
-    expect(newEntryArticle).toHaveTextContent("Stripe for invoicing");
-    expect(newEntryArticle).toHaveTextContent(
-      "an external provider for electronic signatures",
+      "working local onboarding flow with fictional fixtures",
     );
     expect(newEntryArticle).toHaveTextContent(
-      "Vercel for the Next.js application",
+      "authentication alone does not grant someone access to an organization",
     );
     expect(newEntryArticle).toHaveTextContent(
-      "Supabase for PostgreSQL, authentication, and storage",
+      "not an MVP launch, hosted staging environment, production onboarding system, or client deployment",
     );
-    expect(newEntryArticle).toHaveTextContent("JSON:API");
     expect(newEntryArticle).toHaveTextContent(
-      "unfavorable risk or maintenance burden",
-    );
-    expect(newEntryArticle).toHaveTextContent("The next step");
-    expect(newEntryArticle).toHaveTextContent(
-      "The portal has not been implemented, validated with clients, or put into use.",
+      "disposable end-to-end Playwright browser coverage",
     );
     expect(
       within(newEntryArticle!).getByRole("link", {
+        name: "Read the client portal implementation checkpoint",
+      }),
+    ).toHaveAttribute(
+      "href",
+      "https://github.com/todd-brunia/ai-consulting-meta/blob/b818d07/plans/client-portal/implementation-checkpoint-2026-07-28.md",
+    );
+
+    const revisedPlanArticle = within(articles[1]).getByRole("heading", {
+      name: "Revised a client portal plan through dialogue with AI",
+    }).parentElement;
+    expect(revisedPlanArticle).not.toBeNull();
+    expect(revisedPlanArticle).toHaveTextContent("July 19, 2026");
+    expect(revisedPlanArticle).toHaveTextContent("The initial plan");
+    expect(revisedPlanArticle).toHaveTextContent("The counterproposal");
+    expect(revisedPlanArticle).toHaveTextContent(
+      "My evaluation and revised direction",
+    );
+    expect(revisedPlanArticle).toHaveTextContent("Stripe for invoicing");
+    expect(revisedPlanArticle).toHaveTextContent(
+      "an external provider for electronic signatures",
+    );
+    expect(revisedPlanArticle).toHaveTextContent(
+      "Vercel for the Next.js application",
+    );
+    expect(revisedPlanArticle).toHaveTextContent(
+      "Supabase for PostgreSQL, authentication, and storage",
+    );
+    expect(revisedPlanArticle).toHaveTextContent("JSON:API");
+    expect(revisedPlanArticle).toHaveTextContent(
+      "unfavorable risk or maintenance burden",
+    );
+    expect(revisedPlanArticle).toHaveTextContent("The next step");
+    expect(revisedPlanArticle).toHaveTextContent(
+      "The portal has not been implemented, validated with clients, or put into use.",
+    );
+    expect(
+      within(revisedPlanArticle!).getByRole("link", {
         name: "Read the revised client portal plan",
       }),
     ).toHaveAttribute(
       "href",
       "https://github.com/todd-brunia/ai-consulting-meta/blob/36bf7375fceb19b7a6eb9be648d4aa3dc87a5bed/plans/client-portal/revised-plan.md",
     );
-    expect(articles[1]).toHaveTextContent(
+    expect(articles[2]).toHaveTextContent(
       "Built an onboarding automation proof of concept",
     );
-    expect(articles[1]).toHaveTextContent("July 17, 2026");
-    expect(articles[1]).toHaveTextContent(
+    expect(articles[2]).toHaveTextContent("July 17, 2026");
+    expect(articles[2]).toHaveTextContent(
       "LangGraph orchestration and a local language model",
     );
     expect(
-      within(articles[1]).getByRole("link", {
+      within(articles[2]).getByRole("link", {
         name: "View the AI onboarding automation proof of concept",
       }),
     ).toHaveAttribute(

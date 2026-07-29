@@ -72,7 +72,7 @@ describe("Hero", () => {
     expect(
       screen.getByRole("heading", {
         level: 1,
-        name: "Turn repetitive business processes into practical AI workflows.",
+        name: "Practical AI consulting for small and mid-sized businesses.",
       }),
     ).toBeInTheDocument();
     expect(

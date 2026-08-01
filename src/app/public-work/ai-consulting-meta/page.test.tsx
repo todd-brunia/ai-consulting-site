@@ -15,9 +15,9 @@ describe("AiConsultingMetaPage", () => {
       }),
     ).toBeInTheDocument();
     expect(
-      screen.getByText(/not client work, an implemented portal/i),
+      screen.getByText(/not client work or claims of business results/i),
     ).toBeInTheDocument();
-    expect(screen.getByText(/Todd retained final decision authority/i)).toBeInTheDocument();
+    expect(screen.getByText(/Todd retains final decision authority/i)).toBeInTheDocument();
     expect(screen.getByText(/superseded plans as decision history/i)).toBeInTheDocument();
     expect(
       within(screen.getByRole("banner")).getByRole("link", {
@@ -26,9 +26,15 @@ describe("AiConsultingMetaPage", () => {
     ).toHaveAttribute("href", contactHref);
   });
 
-  it("links the public repository and its planning material", () => {
+  it("links the planning showcase, public repository, and source material", () => {
     render(<AiConsultingMetaPage />);
 
+    expect(
+      screen.getByRole("link", { name: "Explore planning showcase" }),
+    ).toHaveAttribute(
+      "href",
+      "https://todd-brunia.github.io/ai-consulting-meta/",
+    );
     expect(screen.getByRole("link", { name: "View planning repository" })).toHaveAttribute(
       "href",
       "https://github.com/todd-brunia/ai-consulting-meta",

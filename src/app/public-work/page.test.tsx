@@ -84,7 +84,7 @@ describe("PublicWorkPage", () => {
         name: "AI Consulting Planning Record",
       }),
     ).toBeInTheDocument();
-    expect(screen.getByText(/sanitized planning record/i)).toBeInTheDocument();
+    expect(screen.getByText(/public planning library/i)).toBeInTheDocument();
     expect(
       screen.getAllByRole("link", { name: "Explore this example" })[2],
     ).toHaveAttribute("href", "/public-work/ai-consulting-meta");
@@ -95,6 +95,14 @@ describe("PublicWorkPage", () => {
     ).toHaveAttribute(
       "href",
       "https://github.com/todd-brunia/ai-consulting-meta",
+    );
+    expect(
+      screen.getByRole("link", {
+        name: "AI Consulting Planning Record: Explore planning showcase",
+      }),
+    ).toHaveAttribute(
+      "href",
+      "https://todd-brunia.github.io/ai-consulting-meta/",
     );
   });
 });

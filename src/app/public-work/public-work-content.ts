@@ -40,8 +40,14 @@ export const publicWorkItems = [
     id: "ai-consulting-meta",
     name: "AI Consulting Planning Record",
     description:
-      "A sanitized planning record that shows an initial proposal, an AI counterproposal, human evaluation, and a revised technical direction for a hypothetical client portal.",
+      "A public planning library that makes sanitized proposals, counterproposals, roadmaps, and implementation decisions easier to inspect without presenting them as client work.",
     detailPath: "/public-work/ai-consulting-meta",
     repositoryUrl: "https://github.com/todd-brunia/ai-consulting-meta",
+    supportingLinks: [
+      {
+        label: "Explore planning showcase",
+        href: "https://todd-brunia.github.io/ai-consulting-meta/",
+      },
+    ],
   },
 ] satisfies readonly PublicWorkItem[];

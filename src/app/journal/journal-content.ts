@@ -16,6 +16,40 @@ export type JournalEntry = {
 
 export const journalEntries = [
   {
+    id: "published-a-browsable-planning-library",
+    date: "2026-08-01",
+    title: "Published a browsable planning library",
+    problemOrOpportunity:
+      "The public planning repository preserved useful reasoning and decision history, but a source tree was not the clearest way for visitors to explore or share that work.",
+    accomplished:
+      "I published the sanitized planning material as a navigable website and connected it to this site's Public Work collection so visitors can inspect plans, revisions, roadmaps, and selected visual artifacts more directly.",
+    narrativeSections: [
+      {
+        heading: "Making public work easier to inspect",
+        paragraphs: [
+          "Making a repository public is different from making its contents approachable. The new planning showcase renders the existing Markdown records for the browser, organizes them by initiative, and provides direct paths to presentation-oriented material such as the client portal storyboard and wireframe gallery.",
+          "Markdown remains the source of truth. Publishing it through GitHub Pages avoids maintaining a separate copy while giving me stable links I can use in conversations and in this public-work portfolio.",
+        ],
+      },
+      {
+        heading: "Why expose the planning",
+        paragraphs: [
+          "Plans are useful evidence when they show assumptions, alternatives, revisions, boundaries, and the points where a person made a decision. Sharing that record gives others something more concrete to evaluate than a polished result with the reasoning removed.",
+        ],
+      },
+      {
+        heading: "The boundary remains visible",
+        paragraphs: [
+          "The showcase contains sanitized, fictional, or generalized material. It is not a record of a completed client engagement, proof of a business outcome, or a claim that every planned capability is implemented or production-ready.",
+        ],
+      },
+    ],
+    relatedLink: {
+      href: "https://todd-brunia.github.io/ai-consulting-meta/",
+      label: "Explore the public planning showcase",
+    },
+  },
+  {
     id: "built-a-local-client-portal-onboarding-flow",
     date: "2026-07-29",
     title: "Built a local client portal onboarding flow",

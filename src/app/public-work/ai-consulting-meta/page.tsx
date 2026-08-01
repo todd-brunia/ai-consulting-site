@@ -8,7 +8,7 @@ import { ConsultingCta } from "../ai-consulting-site/ai-consulting-site-sections
 export const metadata: Metadata = {
   title: "AI Consulting Planning Record | Todd Brunia",
   description:
-    "A public planning record showing how an AI counterproposal informed human-led technical decisions.",
+    "A public planning library showing how proposals, AI challenges, and implementation evidence inform human-led technical decisions.",
 };
 
 const linkClass =
@@ -48,18 +48,25 @@ export default function AiConsultingMetaPage() {
             </h1>
             <div className="mt-6 max-w-3xl space-y-4 text-lg leading-8 text-[#435156]">
               <p>
-                This public repository preserves a sanitized planning conversation
-                about a hypothetical client portal: an initial proposal, a
-                deliberate AI counterproposal, follow-up questions, and a revised
-                plan.
+                This public library makes sanitized planning easier to browse:
+                proposals, deliberate AI counterproposals, roadmaps, wireframes,
+                and implementation checkpoints remain connected to the decisions
+                that shaped them.
               </p>
               <p>
-                It is a decision-making artifact, not client work, an implemented
-                portal, or a claim of a business result. AI helped challenge the
-                proposal; Todd retained final decision authority.
+                It includes a hypothetical client portal and governed automation
+                planning. These are decision-making artifacts, not client work or
+                claims of business results. AI can challenge a proposal; Todd
+                retains final decision authority.
               </p>
             </div>
             <div className="mt-8 flex flex-wrap gap-x-6 gap-y-3 text-sm">
+              <a
+                href="https://todd-brunia.github.io/ai-consulting-meta/"
+                className={linkClass}
+              >
+                Explore planning showcase
+              </a>
               <a
                 href="https://github.com/todd-brunia/ai-consulting-meta"
                 className={linkClass}

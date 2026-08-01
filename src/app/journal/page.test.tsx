@@ -36,7 +36,7 @@ describe("JournalPage", () => {
     render(<JournalPage />);
 
     const articles = screen.getAllByRole("article");
-    expect(articles).toHaveLength(14);
+    expect(articles).toHaveLength(15);
 
     articles.forEach((article, index) => {
       const entry = journalEntries[index];
@@ -51,7 +51,30 @@ describe("JournalPage", () => {
       expect(within(article).getByText("What changed")).toBeInTheDocument();
     });
 
-    const newEntryArticle = within(articles[0]).getByRole("heading", {
+    const planningLibraryArticle = within(articles[0]).getByRole("heading", {
+      name: "Published a browsable planning library",
+    }).parentElement;
+    expect(planningLibraryArticle).not.toBeNull();
+    expect(planningLibraryArticle).toHaveTextContent("August 1, 2026");
+    expect(planningLibraryArticle).toHaveTextContent(
+      "Making public work easier to inspect",
+    );
+    expect(planningLibraryArticle).toHaveTextContent(
+      "Markdown remains the source of truth",
+    );
+    expect(planningLibraryArticle).toHaveTextContent(
+      "not a record of a completed client engagement",
+    );
+    expect(
+      within(planningLibraryArticle!).getByRole("link", {
+        name: "Explore the public planning showcase",
+      }),
+    ).toHaveAttribute(
+      "href",
+      "https://todd-brunia.github.io/ai-consulting-meta/",
+    );
+
+    const newEntryArticle = within(articles[1]).getByRole("heading", {
       name: "Built a local client portal onboarding flow",
     }).parentElement;
     expect(newEntryArticle).not.toBeNull();
@@ -77,7 +100,7 @@ describe("JournalPage", () => {
       "https://github.com/todd-brunia/ai-consulting-meta/blob/b818d07/plans/client-portal/implementation-checkpoint-2026-07-28.md",
     );
 
-    const revisedPlanArticle = within(articles[1]).getByRole("heading", {
+    const revisedPlanArticle = within(articles[2]).getByRole("heading", {
       name: "Revised a client portal plan through dialogue with AI",
     }).parentElement;
     expect(revisedPlanArticle).not.toBeNull();
@@ -113,15 +136,15 @@ describe("JournalPage", () => {
       "href",
       "https://github.com/todd-brunia/ai-consulting-meta/blob/36bf7375fceb19b7a6eb9be648d4aa3dc87a5bed/plans/client-portal/revised-plan.md",
     );
-    expect(articles[2]).toHaveTextContent(
+    expect(articles[3]).toHaveTextContent(
       "Built an onboarding automation proof of concept",
     );
-    expect(articles[2]).toHaveTextContent("July 17, 2026");
-    expect(articles[2]).toHaveTextContent(
+    expect(articles[3]).toHaveTextContent("July 17, 2026");
+    expect(articles[3]).toHaveTextContent(
       "LangGraph orchestration and a local language model",
     );
     expect(
-      within(articles[2]).getByRole("link", {
+      within(articles[3]).getByRole("link", {
         name: "View the AI onboarding automation proof of concept",
       }),
     ).toHaveAttribute(

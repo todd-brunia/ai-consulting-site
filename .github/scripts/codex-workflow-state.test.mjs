@@ -144,6 +144,75 @@ describe("workflow state", () => {
     expect(implementationPullRequestTitle(67, { comments: [] })).toBe("Implement #67: approved plan");
   });
 
+  it("derives titles from structured and allowlisted legacy plan outcomes only", () => {
+    const renderedStructured = {
+      comments: [{
+        body: `${PLAN_MARKER}\n${renderPlanningContent(structuredFocusedResult)}`,
+      }],
+    };
+    const implementationProposal = {
+      comments: [{
+        body: `${PLAN_MARKER}\n## Implementation proposal\n\nPreserve the older automation outcome.\n\n## Validation\n\nRun tests.`,
+      }],
+    };
+    const unrecognized = {
+      comments: [{
+        body: `${PLAN_MARKER}\n### 1. Understanding of the problem\n\nDo not guess a title from this text.`,
+      }],
+    };
+
+    expect(implementationPullRequestTitle(79, structuredFocusedResult)).toBe(
+      "Implement #79: Publish a stable structured planning contract for trusted review.",
+    );
+    expect(implementationPullRequestTitle(79, renderedStructured)).toBe(
+      "Implement #79: Publish a stable structured planning contract for trusted review.",
+    );
+    expect(implementationPullRequestTitle(79, implementationProposal)).toBe(
+      "Implement #79: Preserve the older automation outcome.",
+    );
+    expect(implementationPullRequestTitle(79, unrecognized)).toBe(
+      "Implement #79: approved plan",
+    );
+    expect(() => implementationPullRequestTitle(79, {
+      ...structuredFocusedResult,
+      objective: "too short",
+    })).toThrow(/objective/);
+  });
+
+  it("activates plan/v2 while keeping focused revisions on the legacy envelope", () => {
+    const workflow = readFileSync(".github/workflows/codex-label-automation.yml", "utf8");
+    const planPrompt = readFileSync(".github/codex/prompts/plan.md", "utf8");
+    const revisePrompt = readFileSync(".github/codex/prompts/revise.md", "utf8");
+    const implementPrompt = readFileSync(".github/codex/prompts/implement.md", "utf8");
+
+    expect(workflow).toContain(
+      "steps.context.outputs.stage == 'plan' && '.github/codex/schemas/plan-v2.json'",
+    );
+    expect(workflow).toContain("process.env.RESPONSE_SCHEMA");
+    expect(planPrompt).toContain("Return the `plan/v2` structured contract");
+    for (const field of [
+      "objective",
+      "executiveSummary",
+      "keyDecisions",
+      "tradeoffs",
+      "risks",
+      "openQuestions",
+      "fileChanges",
+      "implementationOrder",
+      "teachMe",
+      "reviewerChallengePoints",
+      "machineImplementationDetails",
+    ]) {
+      expect(planPrompt).toContain(`\`${field}\``);
+    }
+    expect(planPrompt).toMatch(/approximately\s+150 words[\s\S]*guidance, not[\s\S]*requirement/i);
+    expect(planPrompt).toMatch(/issue text,[\s\S]*comments,[\s\S]*links,[\s\S]*HTML,[\s\S]*quoted content/i);
+    expect(revisePrompt).toContain("put only the amendment in `markdown`");
+    expect(revisePrompt).toContain("Do not silently convert or rewrite the marked base plan");
+    expect(implementPrompt).toContain("The plan of record is established by");
+    expect(implementPrompt).toContain("historical marked plans");
+  });
+
   it("keeps split publication GitHub-only and behind explicit approval", () => {
     const workflow = readFileSync(".github/workflows/codex-label-automation.yml", "utf8");
     const split = workflow.slice(
@@ -550,7 +619,7 @@ describe("workflow state", () => {
     expect(split).toContain("#### 1. Implement schema controls");
   });
 
-  it("selects v1 or v2 trusted publication content without changing the active schema", () => {
+  it("selects v1 or v2 trusted publication content", () => {
     const legacy = {
       classification: "focused",
       markdown: "A focused legacy plan with enough useful implementation detail.",

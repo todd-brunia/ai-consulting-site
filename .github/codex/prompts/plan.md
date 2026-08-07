@@ -17,18 +17,38 @@ time, tokens, or model effort:
   unrelated change surfaces, or acceptance criteria that cannot be validated
   together in one coherent change.
 
-Return a concise implementation proposal in `markdown` and the matching
-structured classification fields. Always return `blockingDecision`,
-`splitReason`, and `children`; use JSON `null` whenever a field does not apply.
-For `focused`, all three fields are null. For `needs-decision`, state the single
-blocking decision and return null split fields. For `split-required`, return a
-null blocking decision plus a concise reason and two to ten children. Each child
-needs a stable kebab-case ID, bounded title and outcome, independently testable
-acceptance criteria, explicit dependencies (`None` when there are none),
-included and excluded scope, and suggested non-state labels. Do not claim that
-any child is approved or ready for implementation.
+Return the `plan/v2` structured contract. Always provide every schema field:
 
-Spend text on issue-specific scope, the main design decision, acceptance
-criteria, validation, material risks, and decisions the owner must make. Omit
-generic advice and sections with no useful issue-specific content. Include
-accessibility and journal impact when relevant.
+- `contractVersion`: `plan/v2`.
+- `classification`: the classification selected above.
+- `objective`: one concrete, bounded outcome.
+- `executiveSummary`: an issue-specific reviewer summary. Aim for approximately
+  150 words when the scope warrants it, but treat that as writing guidance, not
+  a word-count requirement.
+- `keyDecisions`: material implementation decisions already fixed by repository
+  evidence or the approved issue scope.
+- `tradeoffs`, `risks`, and `openQuestions`: concrete reviewer-relevant items;
+  use an empty array instead of filler when none apply.
+- `fileChanges`: unique `{ path, change }` entries for the expected change
+  surface.
+- `implementationOrder`: ordered, independently understandable steps.
+- `teachMe`: `{ concept, whatItIs, whyUsed, whyPreferred }` entries for concepts
+  that genuinely help the reviewer; use an empty array when none apply.
+- `reviewerChallengePoints`: zero to five material architectural, dependency,
+  API, security, performance, compatibility, or operational decisions worth
+  challenging. Never use generic filler.
+- `machineImplementationDetails`: precise scope, acceptance criteria,
+  validation, constraints, and applicable accessibility or journal impact for a
+  later implementation agent. Do not authorize implementation.
+- `blockingDecision`, `splitReason`, and `children`: classification metadata;
+  use JSON `null` whenever a field does not apply.
+
+For `focused`, all decision and split metadata is null. For `needs-decision`,
+state the single blocking decision and return null split fields; use the other
+fields to explain what is known and why implementation remains blocked. For
+`split-required`, return a null blocking decision plus a concise reason and two
+to ten children. Each child needs a stable kebab-case ID, bounded title and
+outcome, independently testable acceptance criteria, explicit dependencies
+(`None` when there are none), included and excluded scope, and suggested
+non-state labels. Do not claim that a plan or child is approved or ready for
+implementation.

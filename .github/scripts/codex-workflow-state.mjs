@@ -484,19 +484,35 @@ function normalizedTitleText(value) {
     .trim();
 }
 
-function proposalOutcome(source) {
+function firstParagraphUnder(body, heading) {
+  const escapedHeading = heading.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  return body.match(
+    new RegExp(`^${escapedHeading}[ \\t]*\\r?\\n+([\\s\\S]*?)(?=\\r?\\n\\s*\\r?\\n|\\r?\\n#{1,6}\\s|$)`, "m"),
+  )?.[1] ?? "";
+}
+
+function planOutcome(source) {
+  if (source?.contractVersion === "plan/v2") {
+    validatePlanningResult(source);
+    return normalizedTitleText(source.objective);
+  }
+
   const plan = source?.comments?.find((comment) => comment.body?.includes(PLAN_MARKER));
   if (!plan) return "";
-
-  const proposal = plan.body.match(/^## Proposal\s*\n+([\s\S]*?)(?=^##\s|\s*$)/m)?.[1] ?? "";
-  return normalizedTitleText(proposal);
+  const structuredObjective = plan.body.includes("## Human Review Summary")
+    ? firstParagraphUnder(plan.body, "### Objective")
+    : "";
+  const outcome = structuredObjective
+    || firstParagraphUnder(plan.body, "## Proposal")
+    || firstParagraphUnder(plan.body, "## Implementation proposal");
+  return normalizedTitleText(outcome);
 }
 
 export function implementationPullRequestTitle(issueNumber, source) {
   const prefix = `Implement #${issueNumber}: `;
   const fallback = "approved plan";
   const availableLength = PULL_REQUEST_TITLE_MAX_LENGTH - prefix.length;
-  const outcome = proposalOutcome(source) || fallback;
+  const outcome = planOutcome(source) || fallback;
   const title = outcome.length > availableLength
     ? `${outcome.slice(0, Math.max(availableLength - 1, 0)).trimEnd()}…`
     : outcome;

@@ -79,6 +79,11 @@ describe("split publisher", () => {
     expect(created).toHaveLength(2);
     expect(confirmed.map(({ number }) => number)).toEqual([100, 101]);
     expect(issues.createComment).toHaveBeenCalledOnce();
+    expect(issues.removeLabel).toHaveBeenCalledTimes(3);
+    expect(issues.addLabels).toHaveBeenCalledWith(expect.objectContaining({
+      issue_number: 60,
+      labels: ["split-parent"],
+    }));
     expect(issues.update).toHaveBeenCalledWith(expect.objectContaining({
       issue_number: 60,
       state: "closed",
@@ -98,6 +103,48 @@ describe("split publisher", () => {
     expect(created).toHaveLength(1);
     expect(confirmed.map(({ number }) => number)).toEqual([88, 100]);
     expect(issues.update).toHaveBeenCalledOnce();
+  });
+
+  it("updates an existing deterministic checklist instead of adding another", async () => {
+    const comments = [{ id: 9, body: `<!-- codex-split-checklist:${digest} -->\nOld checklist` }];
+    const { github, issues } = mockGithub({ comments });
+
+    await publishSplit({ github, owner: "todd-brunia", repo: "site", parent, result, digest });
+
+    expect(issues.updateComment).toHaveBeenCalledWith(expect.objectContaining({ comment_id: 9 }));
+    expect(issues.createComment).not.toHaveBeenCalled();
+  });
+
+  it("rejects invalid or stale split requests before external mutations", async () => {
+    const focused = {
+      classification: "focused",
+      markdown: "A valid focused legacy plan that must not be published as a split.",
+      blockingDecision: null,
+      splitReason: null,
+      children: null,
+    };
+    const focusedMocks = mockGithub();
+    await expect(publishSplit({
+      github: focusedMocks.github,
+      owner: "todd-brunia",
+      repo: "site",
+      parent,
+      result: focused,
+      digest,
+    })).rejects.toThrow(/requires a split proposal/);
+    expect(focusedMocks.issues.create).not.toHaveBeenCalled();
+
+    const staleMocks = mockGithub();
+    await expect(publishSplit({
+      github: staleMocks.github,
+      owner: "todd-brunia",
+      repo: "site",
+      parent: { ...parent, state: "closed" },
+      result,
+      digest,
+    })).rejects.toThrow(/no longer open/);
+    expect(staleMocks.issues.create).not.toHaveBeenCalled();
+    expect(staleMocks.issues.update).not.toHaveBeenCalled();
   });
 
   it("leaves the parent open when child creation partially fails", async () => {

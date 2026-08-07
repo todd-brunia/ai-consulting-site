@@ -2,7 +2,16 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "type": "object",
   "additionalProperties": false,
-  "required": ["classification", "markdown", "blockingDecision", "splitReason", "children"],
+  "required": [
+    "classification",
+    "markdown",
+    "blockingDecision",
+    "decisionOptions",
+    "recommendedOptionId",
+    "recommendationRationale",
+    "splitReason",
+    "children"
+  ],
   "properties": {
     "classification": {
       "type": "string",
@@ -12,6 +21,29 @@
       "type": "string"
     },
     "blockingDecision": {
+      "type": ["string", "null"]
+    },
+    "decisionOptions": {
+      "type": ["array", "null"],
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "label", "description", "tradeoffs"],
+        "properties": {
+          "id": { "type": "string" },
+          "label": { "type": "string" },
+          "description": { "type": "string" },
+          "tradeoffs": {
+            "type": "array",
+            "items": { "type": "string" }
+          }
+        }
+      }
+    },
+    "recommendedOptionId": {
+      "type": ["string", "null"]
+    },
+    "recommendationRationale": {
       "type": ["string", "null"]
     },
     "splitReason": {

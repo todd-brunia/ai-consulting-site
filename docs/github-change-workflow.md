@@ -71,7 +71,7 @@ stateDiagram-v2
     Planning --> NeedsDecision: material decision required
     Planning --> SplitProposed: split required
 
-    NeedsDecision --> ChangesRequested: human resolves decision
+    NeedsDecision --> NeedsPlanning: human records choice
     PlanReady --> ChangesRequested: human requests changes
     PlanReady --> ApprovedBuild: human approves plan
     ApprovedBuild --> ApprovedAiBuild: human authorizes AI build
@@ -96,8 +96,12 @@ stateDiagram-v2
 ```
 
 `needs-decision`, `split-proposed`, `approved-for-split`, and `split-parent`
-block automated implementation. A human resolves a decision through planning
-discussion. For a proposed split, a human reviews the decomposition before
+block automated implementation. A `needs-decision` plan presents two to four
+reviewable options and may mark one advisory recommendation. The recommendation
+does not select an option or authorize work. The owner records the chosen option
+and any constraints in an issue comment, removes `needs-decision`, and applies
+`needs-planning` so Codex can produce a focused plan from that human decision.
+For a proposed split, a human reviews the decomposition before
 applying `approved-for-split`; model output alone never authorizes child creation.
 
 ## Planning Prompt

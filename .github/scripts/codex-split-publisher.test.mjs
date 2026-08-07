@@ -44,7 +44,12 @@ function mockGithub({ existing = [], comments = [], failOnCreate = null } = {}) 
     listComments: vi.fn(),
     create: vi.fn(async (input) => {
       if (input.title === failOnCreate) throw new Error("simulated child creation failure");
-      const data = { number: nextNumber++, title: input.title, body: input.body };
+      const data = {
+        number: nextNumber++,
+        title: input.title,
+        body: input.body,
+        labels: input.labels,
+      };
       created.push(data);
       return { data };
     }),
@@ -62,14 +67,48 @@ function mockGithub({ existing = [], comments = [], failOnCreate = null } = {}) 
 }
 
 describe("split publisher", () => {
-  it("builds bounded child text and excludes state labels", () => {
-    expect(childLabels(parent.labels, children[0].suggestedLabels)).toEqual(["workflow"]);
+  it("builds bounded child text and starts new children in needs-planning", () => {
+    expect(childLabels(parent.labels, children[0].suggestedLabels)).toEqual([
+      "needs-planning",
+      "workflow",
+    ]);
     expect(childBody({ parentNumber: 60, child: children[0], digest })).toContain(
       splitChildMarker(60, "schema", digest),
     );
     expect(childBody({ parentNumber: 60, child: children[0], digest })).toContain(
+      "begins in `needs-planning` for read-only planning",
+    );
+    expect(childBody({ parentNumber: 60, child: children[0], digest })).not.toContain(
+      "apply `needs-planning`",
+    );
+    expect(childBody({ parentNumber: 60, child: children[0], digest })).toContain(
       "has not been approved for implementation",
     );
+  });
+
+  it("deduplicates topic labels and filters every other workflow state", () => {
+    const labels = [
+      ...parent.labels,
+      { name: "workflow" },
+      { name: "plan-ready" },
+      { name: "approved-for-build" },
+      { name: "approved-for-ai-build" },
+      { name: "in-progress" },
+      { name: "split-parent" },
+    ];
+    const suggested = [
+      "workflow",
+      "workflow",
+      "needs-planning",
+      "plan-ready",
+      "approved-for-build",
+      "approved-for-ai-build",
+      "in-progress",
+      "blocked",
+      "split-parent",
+    ];
+
+    expect(childLabels(labels, suggested)).toEqual(["needs-planning", "workflow"]);
   });
 
   it("creates all missing children, reconciles a checklist, then closes the parent", async () => {
@@ -77,6 +116,10 @@ describe("split publisher", () => {
     const confirmed = await publishSplit({ github, owner: "todd-brunia", repo: "site", parent, result, digest });
 
     expect(created).toHaveLength(2);
+    expect(created.map(({ labels }) => labels)).toEqual([
+      ["needs-planning", "workflow"],
+      ["needs-planning", "workflow"],
+    ]);
     expect(confirmed.map(({ number }) => number)).toEqual([100, 101]);
     expect(issues.createComment).toHaveBeenCalledOnce();
     expect(issues.removeLabel).toHaveBeenCalledTimes(3);
@@ -102,6 +145,8 @@ describe("split publisher", () => {
 
     expect(created).toHaveLength(1);
     expect(confirmed.map(({ number }) => number)).toEqual([88, 100]);
+    expect(issues.removeLabel.mock.calls.some(([input]) => input.issue_number === 88)).toBe(false);
+    expect(issues.addLabels.mock.calls.some(([input]) => input.issue_number === 88)).toBe(false);
     expect(issues.update).toHaveBeenCalledOnce();
   });
 

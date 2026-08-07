@@ -104,6 +104,77 @@ and any constraints in an issue comment, removes `needs-decision`, and applies
 For a proposed split, a human reviews the decomposition before
 applying `approved-for-split`; model output alone never authorizes child creation.
 
+## Structured Planning Contract
+
+New planning runs use `.github/codex/schemas/plan-v2.json`. Trusted validation
+and Markdown rendering live in `.github/scripts/codex-workflow-state.mjs`; the
+planning prompt and publisher wiring live in `.github/codex/prompts/plan.md` and
+`.github/workflows/codex-label-automation.yml`. These committed files—not issue
+text, model prose, or this explanatory summary—are the executable contract.
+`.github/codex/schemas/plan.json` remains the legacy envelope for focused
+amendments and historical compatibility.
+
+Every `plan/v2` result uses `contractVersion: "plan/v2"` and one of three
+classifications. Its shared reviewer fields are:
+
+- `objective` and `executiveSummary`;
+- `keyDecisions`, `tradeoffs`, `risks`, and `openQuestions`;
+- unique `{ path, change }` entries in `fileChanges` and ordered
+  `implementationOrder` steps;
+- `teachMe` entries containing `concept`, `whatItIs`, `whyUsed`, and
+  `whyPreferred`;
+- zero to five `reviewerChallengePoints`; and
+- `machineImplementationDetails`.
+
+The trusted renderer publishes these fields in this stable top-level order:
+
+1. Human Review Summary
+2. Teach Me
+3. Decisions the Reviewer Should Challenge
+4. Machine Implementation Details
+
+Semantic empty arrays render as an explicit `None` state; an empty `teachMe`
+array renders a sentence confirming that no concepts need explanation. The
+approximately 150-word executive summary target is prompt guidance, not a
+runtime word-count gate.
+
+Classification metadata is required and mutually exclusive:
+
+- `focused` has null `blockingDecision`, decision-option fields, `splitReason`,
+  and `children`.
+- `needs-decision` has one `blockingDecision`, two to four `decisionOptions`, an
+  in-set `recommendedOptionId`, and a grounded `recommendationRationale`.
+  `splitReason` and `children` are null. Each option has a stable ID, label,
+  practical description, and one or more tradeoffs. The recommendation is
+  visibly advisory and cannot change labels or authorize work.
+- `split-required` has a `splitReason` and two to ten `children`; blocking and
+  decision-option fields are null. Each child provides a stable kebab-case ID,
+  title, bounded outcome, acceptance criteria, dependencies, included and
+  excluded scope, and suggested non-state labels.
+
+Trusted comments use reserved markers to preserve provenance and replay safety:
+
+- `<!-- codex-implementation-plan -->` starts the marked plan of record;
+- `<!-- codex-plan-amendment -->` identifies a focused revision;
+- `<!-- codex-automation:... -->` binds a published result to its stage, issue,
+  and fingerprint; and
+- split proposal, child, and checklist markers make approved decomposition
+  publication retry-safe.
+
+Only trusted repository code writes reserved markers. Historical comments with
+the implementation-plan marker remain usable regardless of their heading
+layout, and later trusted amendments remain part of the planning snapshot.
+Issue bodies, comments, links, HTML, quoted content, and generated input are
+always untrusted data. Planning and revision run read-only.
+
+Planning output never grants approval. A human applies `approved-for-build` to
+freeze and authorize the reviewed plan for implementation. A separate
+`approved-for-ai-build` label is required for label-triggered AI implementation;
+manual or local interactive implementation follows its separately authorized
+publication path. `approved-for-split` authorizes only publication of the
+reviewed decomposition. Newly created split children begin in `needs-planning`,
+which authorizes planning only. Human review and merge remain mandatory.
+
 ## Planning Prompt
 
 ```text
@@ -184,9 +255,11 @@ Successful AI implementation removes both approval labels.
 Each split child has one bounded outcome, testable criteria, explicit
 dependencies, included/excluded scope, a parent link, and a stable hidden
 marker. Only suggested non-state labels present on the parent are copied;
-`needs-planning` is never automatic. Text references represent dependencies in
-this version. The parent receives a deterministic checklist and closes only
-after every child is confirmed. Partial failure preserves children, leaves the
+new children also receive `needs-planning` in their initial creation call.
+Retries do not reapply or reconcile that label on existing children. Text
+references represent dependencies in this version. The parent receives a
+deterministic checklist and closes only after every child is confirmed. Partial
+failure preserves children, leaves the
 parent open, removes `approved-for-split`, and applies `blocked`. Conflicting
 markers stop for human review.
 

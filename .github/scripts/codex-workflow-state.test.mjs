@@ -367,6 +367,54 @@ describe("workflow state", () => {
     })).toThrow(/must be required/);
   });
 
+  it("defines the dormant structured plan/v2 contract", () => {
+    const schema = JSON.parse(readFileSync(".github/codex/schemas/plan-v2.json", "utf8"));
+    const requiredFields = [
+      "contractVersion",
+      "classification",
+      "objective",
+      "executiveSummary",
+      "keyDecisions",
+      "tradeoffs",
+      "risks",
+      "openQuestions",
+      "fileChanges",
+      "implementationOrder",
+      "teachMe",
+      "reviewerChallengePoints",
+      "machineImplementationDetails",
+      "blockingDecision",
+      "splitReason",
+      "children",
+    ];
+
+    expect(validateResponseSchemaCompatibility(schema)).toBe(schema);
+    expect(schema.required).toEqual(requiredFields);
+    expect(schema.properties.contractVersion.enum).toEqual(["plan/v2"]);
+    expect(schema.properties.classification.enum).toEqual([
+      "focused",
+      "needs-decision",
+      "split-required",
+    ]);
+    expect(schema.properties.fileChanges.items).toMatchObject({
+      additionalProperties: false,
+      required: ["path", "change"],
+    });
+    expect(schema.properties.teachMe.items).toMatchObject({
+      additionalProperties: false,
+      required: ["concept", "whatItIs", "whyUsed", "whyPreferred"],
+    });
+    expect(schema.properties.blockingDecision.type).toEqual(["string", "null"]);
+    expect(schema.properties.splitReason.type).toEqual(["string", "null"]);
+    expect(schema.properties.children.type).toEqual(["array", "null"]);
+    expect(schema.properties.children.items).toEqual(
+      JSON.parse(readFileSync(".github/codex/schemas/plan.json", "utf8")).properties.children.items,
+    );
+    expect(JSON.stringify(schema)).not.toMatch(
+      /"(?:uniqueItems|minLength|maxLength|pattern|minItems|maxItems)"/,
+    );
+  });
+
   it("encodes a split proposal with its trusted planning fingerprint", () => {
     const digest = "a".repeat(64);
     const markerText = encodeSplitProposal(splitResult, digest);

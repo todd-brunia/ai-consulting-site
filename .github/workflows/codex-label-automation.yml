@@ -253,7 +253,7 @@ jobs:
             const structured = parsed.classification === "split-required"
               ? `\n${helpers.encodeSplitProposal(parsed, process.env.MARKER.match(/:([a-f0-9]{64}) -->$/)[1])}`
               : "";
-            const body = `${process.env.MARKER}${structured}\n${heading}\n\n${parsed.markdown}${helpers.renderPlanningDetails(parsed)}`;
+            const body = `${process.env.MARKER}${structured}\n${heading}\n\n${helpers.renderPlanningContent(parsed)}`;
             helpers.validatePublicText(body);
 
             await github.rest.issues.createComment({

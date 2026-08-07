@@ -107,11 +107,127 @@ function assertTextList(value, name, { min = 1, max = 12, itemMin = 1, itemMax =
   return value.map((item, index) => assertText(item, `${name}[${index}]`, { min: itemMin, max: itemMax }));
 }
 
+function assertUniqueList(value, name) {
+  if (new Set(value).size !== value.length) {
+    throw new Error(`${name} must contain unique items.`);
+  }
+}
+
+function assertStructuredPlan(result) {
+  if (result.contractVersion !== "plan/v2") {
+    throw new Error("Structured planning result has an invalid contractVersion.");
+  }
+
+  const allowedFields = new Set([
+    "contractVersion",
+    "classification",
+    "objective",
+    "executiveSummary",
+    "keyDecisions",
+    "tradeoffs",
+    "risks",
+    "openQuestions",
+    "fileChanges",
+    "implementationOrder",
+    "teachMe",
+    "reviewerChallengePoints",
+    "machineImplementationDetails",
+    "blockingDecision",
+    "splitReason",
+    "children",
+  ]);
+  const unexpectedFields = Object.keys(result).filter((field) => !allowedFields.has(field));
+  if (unexpectedFields.length > 0) {
+    throw new Error(`Structured planning result has unexpected fields: ${unexpectedFields.join(", ")}`);
+  }
+
+  assertText(result.objective, "objective", { min: 10, max: 500 });
+  assertText(result.executiveSummary, "executiveSummary", { min: 40, max: 4_000 });
+  assertTextList(result.keyDecisions, "keyDecisions", { min: 1, max: 12, itemMin: 10 });
+  assertTextList(result.tradeoffs, "tradeoffs", { min: 0, max: 12, itemMin: 10 });
+  assertTextList(result.risks, "risks", { min: 0, max: 12, itemMin: 10 });
+  assertTextList(result.openQuestions, "openQuestions", { min: 0, max: 12, itemMin: 10 });
+  assertTextList(result.implementationOrder, "implementationOrder", {
+    min: 1,
+    max: 20,
+    itemMin: 10,
+  });
+  for (const field of [
+    "keyDecisions",
+    "tradeoffs",
+    "risks",
+    "openQuestions",
+    "implementationOrder",
+  ]) {
+    assertUniqueList(result[field], field);
+  }
+  assertText(result.machineImplementationDetails, "machineImplementationDetails", {
+    min: 20,
+    max: 8_000,
+  });
+
+  if (!Array.isArray(result.fileChanges) || result.fileChanges.length < 1 || result.fileChanges.length > 30) {
+    throw new Error("fileChanges must contain 1-30 items.");
+  }
+  const filePaths = new Set();
+  for (const [index, file] of result.fileChanges.entries()) {
+    if (!file || typeof file !== "object" || Array.isArray(file)) {
+      throw new Error(`fileChanges[${index}] is invalid.`);
+    }
+    const fields = Object.keys(file);
+    if (fields.length !== 2 || !fields.includes("path") || !fields.includes("change")) {
+      throw new Error(`fileChanges[${index}] must contain only path and change.`);
+    }
+    const path = assertText(file.path, `fileChanges[${index}].path`, { max: 500 });
+    assertText(file.change, `fileChanges[${index}].change`, { min: 10, max: 1_000 });
+    if (filePaths.has(path)) throw new Error(`Duplicate file change path: ${path}`);
+    filePaths.add(path);
+  }
+
+  if (!Array.isArray(result.teachMe) || result.teachMe.length > 10) {
+    throw new Error("teachMe must contain 0-10 items.");
+  }
+  const concepts = new Set();
+  for (const [index, entry] of result.teachMe.entries()) {
+    if (!entry || typeof entry !== "object" || Array.isArray(entry)) {
+      throw new Error(`teachMe[${index}] is invalid.`);
+    }
+    const fields = Object.keys(entry);
+    const expected = ["concept", "whatItIs", "whyUsed", "whyPreferred"];
+    if (fields.length !== expected.length || expected.some((field) => !fields.includes(field))) {
+      throw new Error(`teachMe[${index}] has invalid fields.`);
+    }
+    const concept = assertText(entry.concept, `teachMe[${index}].concept`, { min: 3, max: 160 });
+    if (concepts.has(concept)) throw new Error(`Duplicate Teach Me concept: ${concept}`);
+    concepts.add(concept);
+    assertText(entry.whatItIs, `teachMe[${index}].whatItIs`, { min: 10, max: 1_000 });
+    assertText(entry.whyUsed, `teachMe[${index}].whyUsed`, { min: 10, max: 1_000 });
+    assertText(entry.whyPreferred, `teachMe[${index}].whyPreferred`, { min: 10, max: 1_000 });
+  }
+
+  assertTextList(result.reviewerChallengePoints, "reviewerChallengePoints", {
+    min: 0,
+    max: 5,
+    itemMin: 20,
+    itemMax: 1_000,
+  });
+  assertUniqueList(result.reviewerChallengePoints, "reviewerChallengePoints");
+  for (const point of result.reviewerChallengePoints) {
+    if (/^(?:none|n\/a|not applicable|no (?:challenge|concern|issue)s?|tbd)[.!]?$/i.test(point.trim())) {
+      throw new Error("reviewerChallengePoints cannot contain generic filler.");
+    }
+  }
+}
+
 export function validatePlanningResult(result) {
   if (!result || typeof result !== "object" || !PLANNING_CLASSIFICATIONS.has(result.classification)) {
     throw new Error("Planning result has an invalid classification.");
   }
-  assertText(result.markdown, "markdown", { min: 40, max: 12_000 });
+  if (result.contractVersion === undefined) {
+    assertText(result.markdown, "markdown", { min: 40, max: 12_000 });
+  } else {
+    assertStructuredPlan(result);
+  }
 
   if (result.classification === "focused") {
     if (result.blockingDecision !== null || result.splitReason !== null || result.children !== null) {
@@ -211,21 +327,99 @@ export function validateSplitFingerprint(proposal, expectedDigest) {
   return proposal;
 }
 
-export function renderPlanningDetails(result) {
-  validatePlanningResult(result);
-  if (result.classification === "focused") return "";
-  if (result.classification === "needs-decision") {
-    return `\n\n## Human decision required\n\n${result.blockingDecision}`;
-  }
-  const children = result.children.map((child, index) => {
+function renderSplitChildren(children, heading = "###") {
+  return children.map((child, index) => {
     const criteria = child.acceptanceCriteria.map((item) => `- ${item}`).join("\n");
     const dependencies = child.dependencies.map((item) => `- ${item}`).join("\n");
     const included = child.includedScope.map((item) => `- ${item}`).join("\n");
     const excluded = child.excludedScope.map((item) => `- ${item}`).join("\n");
-    const labels = child.suggestedLabels.length > 0 ? child.suggestedLabels.map((item) => `\`${item}\``).join(", ") : "None";
-    return `### ${index + 1}. ${child.title}\n\n${child.outcome}\n\nAcceptance criteria:\n\n${criteria}\n\nDependencies:\n\n${dependencies}\n\nIncluded scope:\n\n${included}\n\nExcluded scope:\n\n${excluded}\n\nSuggested labels: ${labels}`;
+    const labels = child.suggestedLabels.length > 0
+      ? child.suggestedLabels.map((item) => `\`${item}\``).join(", ")
+      : "None";
+    return `${heading} ${index + 1}. ${child.title}\n\n${child.outcome}\n\nAcceptance criteria:\n\n${criteria}\n\nDependencies:\n\n${dependencies}\n\nIncluded scope:\n\n${included}\n\nExcluded scope:\n\n${excluded}\n\nSuggested labels: ${labels}`;
   }).join("\n\n");
+}
+
+export function renderPlanningDetails(result) {
+  validatePlanningResult(result);
+  if (result.contractVersion === "plan/v2") {
+    const list = (items) => items.length > 0 ? items.map((item) => `- ${item}`).join("\n") : "None.";
+    const files = result.fileChanges
+      .map((file) => `- \`${file.path}\`: ${file.change}`)
+      .join("\n");
+    const order = result.implementationOrder
+      .map((step, index) => `${index + 1}. ${step}`)
+      .join("\n");
+    const teachMe = result.teachMe.length > 0
+      ? result.teachMe.map((entry) =>
+        `### ${entry.concept}\n\n**What it is:** ${entry.whatItIs}\n\n**Why it is used:** ${entry.whyUsed}\n\n**Why it is preferred:** ${entry.whyPreferred}`,
+      ).join("\n\n")
+      : "No concepts require additional explanation for this plan.";
+    const classificationDetails = result.classification === "needs-decision"
+      ? `\n\n### Human Decision Required\n\n${result.blockingDecision}`
+      : result.classification === "split-required"
+        ? `\n\n### Proposed Decomposition\n\n${result.splitReason}\n\n${renderSplitChildren(result.children, "####")}`
+        : "";
+
+    return `## Human Review Summary
+
+### Objective
+
+${result.objective}
+
+### Executive Summary
+
+${result.executiveSummary}
+
+### Key Decisions
+
+${list(result.keyDecisions)}
+
+### Tradeoffs
+
+${list(result.tradeoffs)}
+
+### Risks
+
+${list(result.risks)}
+
+### Open Questions
+
+${list(result.openQuestions)}
+
+### File Changes
+
+${files}
+
+### Implementation Order
+
+${order}
+${classificationDetails}
+
+## Teach Me
+
+${teachMe}
+
+## Decisions the Reviewer Should Challenge
+
+${list(result.reviewerChallengePoints)}
+
+## Machine Implementation Details
+
+${result.machineImplementationDetails}`;
+  }
+  if (result.classification === "focused") return "";
+  if (result.classification === "needs-decision") {
+    return `\n\n## Human decision required\n\n${result.blockingDecision}`;
+  }
+  const children = renderSplitChildren(result.children);
   return `\n\n## Proposed decomposition\n\n${result.splitReason}\n\n${children}`;
+}
+
+export function renderPlanningContent(result) {
+  validatePlanningResult(result);
+  if (result.contractVersion === "plan/v2") return renderPlanningDetails(result);
+  return `${result.markdown}${renderPlanningDetails(result)}`;
 }
 
 export function latestPlanIndex(comments) {

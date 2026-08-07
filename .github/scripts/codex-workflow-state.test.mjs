@@ -13,6 +13,8 @@ import {
   implementationPullRequestTitle,
   marker,
   planningSnapshot,
+  renderPlanningContent,
+  renderPlanningDetails,
   transitionFor,
   validatePlanningResult,
   validatePatch,
@@ -50,6 +52,34 @@ const splitResult = {
     excludedScope: ["Unrelated workflow changes."],
     suggestedLabels: ["workflow"],
   })),
+};
+const structuredFocusedResult = {
+  contractVersion: "plan/v2",
+  classification: "focused",
+  objective: "Publish a stable structured planning contract for trusted review.",
+  executiveSummary: "Add trusted validation and rendering for reviewer-oriented planning content while leaving the live v1 workflow unchanged.",
+  keyDecisions: ["Use the approved flat plan/v2 envelope for every planning classification."],
+  tradeoffs: [],
+  risks: ["Overly strict validation could reject useful plans that use concise wording."],
+  openQuestions: [],
+  fileChanges: [{
+    path: ".github/scripts/codex-workflow-state.mjs",
+    change: "Validate and render the dormant structured planning result.",
+  }],
+  implementationOrder: ["Validate every structured field before rendering trusted Markdown."],
+  teachMe: [{
+    concept: "Trusted rendering",
+    whatItIs: "Repository code converts validated model data into a stable Markdown layout.",
+    whyUsed: "It keeps section order and empty-state wording outside untrusted model control.",
+    whyPreferred: "It is more predictable than asking the model to produce final publication Markdown.",
+  }],
+  reviewerChallengePoints: [
+    "Challenge whether the validation bounds preserve useful concise plans without accepting filler.",
+  ],
+  machineImplementationDetails: "Implement only the trusted validator, renderer, and focused regression coverage.",
+  blockingDecision: null,
+  splitReason: null,
+  children: null,
 };
 
 describe("workflow state", () => {
@@ -413,6 +443,131 @@ describe("workflow state", () => {
     expect(JSON.stringify(schema)).not.toMatch(
       /"(?:uniqueItems|minLength|maxLength|pattern|minItems|maxItems)"/,
     );
+  });
+
+  it("validates complete structured plans and classification metadata", () => {
+    expect(validatePlanningResult(structuredFocusedResult)).toBe(structuredFocusedResult);
+    expect(validatePlanningResult({
+      ...structuredFocusedResult,
+      classification: "needs-decision",
+      blockingDecision: "Choose whether strict or permissive validation should govern concise plans.",
+    })).toBeTruthy();
+    expect(validatePlanningResult({
+      ...structuredFocusedResult,
+      classification: "split-required",
+      blockingDecision: null,
+      splitReason: splitResult.splitReason,
+      children: splitResult.children,
+    })).toBeTruthy();
+    expect(() => validatePlanningResult({
+      ...structuredFocusedResult,
+      blockingDecision: "Focused plans cannot carry a blocking decision.",
+    })).toThrow(/Focused/);
+  });
+
+  it("rejects incomplete, unsafe, and low-value structured focused plans", () => {
+    const missingObjective = { ...structuredFocusedResult };
+    delete missingObjective.objective;
+    expect(() => validatePlanningResult(missingObjective)).toThrow(/objective/);
+    expect(() => validatePlanningResult({
+      ...structuredFocusedResult,
+      keyDecisions: [],
+    })).toThrow(/keyDecisions/);
+    expect(() => validatePlanningResult({
+      ...structuredFocusedResult,
+      fileChanges: [
+        ...structuredFocusedResult.fileChanges,
+        structuredFocusedResult.fileChanges[0],
+      ],
+    })).toThrow(/Duplicate file change path/);
+    expect(() => validatePlanningResult({
+      ...structuredFocusedResult,
+      keyDecisions: [
+        structuredFocusedResult.keyDecisions[0],
+        structuredFocusedResult.keyDecisions[0],
+      ],
+    })).toThrow(/unique/);
+    expect(() => validatePlanningResult({
+      ...structuredFocusedResult,
+      reviewerChallengePoints: ["None."],
+    })).toThrow(/reviewerChallengePoints/);
+    expect(() => validatePlanningResult({
+      ...structuredFocusedResult,
+      machineImplementationDetails: "Never publish <!-- codex-automation:unsafe --> markers.",
+    })).toThrow(/reserved automation marker/);
+    expect(() => validatePlanningResult({
+      ...structuredFocusedResult,
+      risks: [`Use ${"sk-"}${"a".repeat(30)} in the workflow.`],
+    })).toThrow(/credential-like/);
+  });
+
+  it("renders structured plans in the stable reviewer-oriented order", () => {
+    const rendered = renderPlanningDetails(structuredFocusedResult);
+    const headings = [
+      "## Human Review Summary",
+      "## Teach Me",
+      "## Decisions the Reviewer Should Challenge",
+      "## Machine Implementation Details",
+    ];
+
+    expect(headings.map((heading) => rendered.indexOf(heading))).toEqual(
+      headings.map((heading) => rendered.indexOf(heading)).sort((a, b) => a - b),
+    );
+    expect(rendered).toContain("### Objective");
+    expect(rendered).toContain("### Executive Summary");
+    expect(rendered).toContain("### Key Decisions");
+    expect(rendered).toContain("### Tradeoffs\n\nNone.");
+    expect(rendered).toContain("### Risks");
+    expect(rendered).toContain("### Open Questions\n\nNone.");
+    expect(rendered).toContain("### File Changes");
+    expect(rendered).toContain("### Implementation Order");
+    expect(rendered).toContain("### Trusted rendering");
+  });
+
+  it("renders an explicit Teach Me empty state", () => {
+    const rendered = renderPlanningDetails({ ...structuredFocusedResult, teachMe: [] });
+    expect(rendered).toContain(
+      "## Teach Me\n\nNo concepts require additional explanation for this plan.",
+    );
+  });
+
+  it("preserves decision and split details inside the structured review layout", () => {
+    const decision = renderPlanningDetails({
+      ...structuredFocusedResult,
+      classification: "needs-decision",
+      blockingDecision: "Choose whether strict or permissive validation should govern concise plans.",
+    });
+    const split = renderPlanningDetails({
+      ...structuredFocusedResult,
+      classification: "split-required",
+      splitReason: splitResult.splitReason,
+      children: splitResult.children,
+    });
+
+    expect(decision).toContain("### Human Decision Required");
+    expect(decision).toContain("Choose whether strict or permissive validation");
+    expect(split).toContain("### Proposed Decomposition");
+    expect(split).toContain("#### 1. Implement schema controls");
+  });
+
+  it("selects v1 or v2 trusted publication content without changing the active schema", () => {
+    const legacy = {
+      classification: "focused",
+      markdown: "A focused legacy plan with enough useful implementation detail.",
+      blockingDecision: null,
+      splitReason: null,
+      children: null,
+    };
+    const workflow = readFileSync(".github/workflows/codex-label-automation.yml", "utf8");
+
+    expect(renderPlanningContent(legacy)).toBe(legacy.markdown);
+    expect(renderPlanningContent(structuredFocusedResult)).toBe(
+      renderPlanningDetails(structuredFocusedResult),
+    );
+    expect(renderPlanningContent(structuredFocusedResult)).not.toContain("undefined");
+    expect(workflow).toContain("helpers.renderPlanningContent(parsed)");
+    expect(JSON.parse(readFileSync(".github/codex/schemas/plan.json", "utf8")).properties)
+      .toHaveProperty("markdown");
   });
 
   it("encodes a split proposal with its trusted planning fingerprint", () => {

@@ -85,6 +85,17 @@ The issue comment—not the Codex prompt or conversation—is the plan of record
 If Codex cannot post the comment, resolve its GitHub access before continuing.
 Do not manually treat chat output as an approved plan.
 
+Automated planning publishes a validated `plan/v2` result in four top-level
+sections: Human Review Summary, Teach Me, Decisions the Reviewer Should
+Challenge, and Machine Implementation Details. The human summary covers the
+objective, executive summary, key decisions, tradeoffs, risks, open questions,
+expected file changes, and implementation order. Teach Me explains only useful
+concepts and shows an explicit empty state when none apply. The reviewer section
+identifies material choices worth challenging; machine details preserve bounded
+implementation and validation guidance. See the
+[structured planning contract](docs/github-change-workflow.md#structured-planning-contract)
+for the complete fields and classification rules.
+
 Review the proposal for visitor outcome, scope, acceptance criteria, tests,
 accessibility, risks, and factual accuracy. Plans should prioritize important
 issue-specific decisions and omit generic detail. When the plan is ready,
@@ -93,8 +104,10 @@ replace `needs-planning` with `plan-ready`.
 Planning classifies scope before implementation approval:
 
 - `focused` follows the normal `plan-ready` review path.
-- `needs-decision` applies `needs-decision` and waits for a material owner
-  decision and focused plan amendment.
+- `needs-decision` applies `needs-decision` and presents two to four options plus
+  one advisory recommendation. The owner records a choice in a comment and
+  returns the issue to `needs-planning`; model output never chooses or approves
+  on the owner's behalf.
 - `split-required` applies `split-proposed` and publishes a reviewable,
   structured decomposition. It cannot advance directly to implementation.
 
@@ -106,9 +119,11 @@ created before that explicit approval.
 
 The trusted split publisher revalidates the proposal fingerprint, reuses
 marked children, creates only missing children, and adds a parent checklist. It
-copies only applicable non-state labels and does not add `needs-planning`;
-review each child before applying that label. After confirming every child, it
-applies `split-parent` and closes the parent as not planned. Partial failure
+starts each newly created child in `needs-planning` and copies only applicable
+non-state labels. This authorizes read-only planning, not implementation. A
+retry does not reset labels on an existing child that may have advanced. After
+confirming every child, it applies `split-parent` and closes the parent as not
+planned. Partial failure
 preserves children, leaves the parent open, removes `approved-for-split`, and
 applies `blocked`. Resolve the cause, remove `blocked`, and reapply
 `approved-for-split` to resume. Conflicting markers require human inspection.
@@ -119,7 +134,11 @@ applies `blocked`. Resolve the cause, remove `blocked`, and reapply
   consolidated replacement only when useful, then return to `plan-ready`.
 - If the proposal is approved, remove other planning-state labels and apply
   `approved-for-build`. Applying this label is the explicit human authorization
-  of the latest plan comment for either implementation path. Add a short
+  of the marked plan and subsequent trusted planning discussion frozen when the
+  label is applied. It covers either implementation path but does not authorize
+  split publication, automatically
+  start AI implementation, approve a model recommendation, or permit merge.
+  Add a short
   approval comment if there could be any ambiguity about which revision was
   approved.
 

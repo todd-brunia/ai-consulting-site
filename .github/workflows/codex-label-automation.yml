@@ -165,11 +165,13 @@ jobs:
 
       - name: Validate planning response schema compatibility
         if: steps.context.outputs.action == 'run' && steps.context.outputs.stage != 'implement'
+        env:
+          RESPONSE_SCHEMA: ${{ steps.context.outputs.stage == 'plan' && '.github/codex/schemas/plan-v2.json' || '.github/codex/schemas/plan.json' }}
         run: >-
           node --input-type=module -e
           "import fs from 'node:fs';
           const {validateResponseSchemaCompatibility} = await import('./.github/scripts/codex-workflow-state.mjs');
-          validateResponseSchemaCompatibility(JSON.parse(fs.readFileSync('.github/codex/schemas/plan.json', 'utf8')));"
+          validateResponseSchemaCompatibility(JSON.parse(fs.readFileSync(process.env.RESPONSE_SCHEMA, 'utf8')));"
 
       - name: Run Codex
         id: codex
@@ -185,7 +187,7 @@ jobs:
           safety-strategy: drop-sudo
           allow-users: ${{ vars.CODEX_ALLOWED_ACTORS }}
           allow-bots: false
-          output-schema-file: ${{ steps.context.outputs.stage == 'implement' && '.github/codex/schemas/implementation-report.json' || '.github/codex/schemas/plan.json' }}
+          output-schema-file: ${{ steps.context.outputs.stage == 'implement' && '.github/codex/schemas/implementation-report.json' || steps.context.outputs.stage == 'plan' && '.github/codex/schemas/plan-v2.json' || '.github/codex/schemas/plan.json' }}
           codex-args: '["--ephemeral"]'
 
       - name: Create and validate implementation patch

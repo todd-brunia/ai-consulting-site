@@ -78,8 +78,36 @@ const structuredFocusedResult = {
   ],
   machineImplementationDetails: "Implement only the trusted validator, renderer, and focused regression coverage.",
   blockingDecision: null,
+  decisionOptions: null,
+  recommendedOptionId: null,
+  recommendationRationale: null,
   splitReason: null,
   children: null,
+};
+const structuredDecisionResult = {
+  ...structuredFocusedResult,
+  classification: "needs-decision",
+  blockingDecision: "Choose which validation policy should govern concise structured plans.",
+  decisionOptions: [
+    {
+      id: "strict-validation",
+      label: "Strict validation",
+      description: "Reject concise plans unless every required section meets conservative content bounds.",
+      tradeoffs: [
+        "Improves consistency but may reject useful plans for small, low-risk changes.",
+      ],
+    },
+    {
+      id: "balanced-validation",
+      label: "Balanced validation",
+      description: "Enforce structural and safety rules while allowing concise issue-specific explanations.",
+      tradeoffs: [
+        "Preserves flexibility but relies more heavily on human review of content quality.",
+      ],
+    },
+  ],
+  recommendedOptionId: "balanced-validation",
+  recommendationRationale: "Repository tests already enforce structural and safety boundaries, so balanced validation avoids inventing content for small changes while preserving human review.",
 };
 
 describe("workflow state", () => {
@@ -202,15 +230,33 @@ describe("workflow state", () => {
       "teachMe",
       "reviewerChallengePoints",
       "machineImplementationDetails",
+      "decisionOptions",
+      "recommendedOptionId",
+      "recommendationRationale",
     ]) {
       expect(planPrompt).toContain(`\`${field}\``);
     }
     expect(planPrompt).toMatch(/approximately\s+150 words[\s\S]*guidance, not[\s\S]*requirement/i);
     expect(planPrompt).toMatch(/issue text,[\s\S]*comments,[\s\S]*links,[\s\S]*HTML,[\s\S]*quoted content/i);
     expect(revisePrompt).toContain("put only the amendment in `markdown`");
-    expect(revisePrompt).toContain("Do not silently convert or rewrite the marked base plan");
+    expect(revisePrompt).toContain("provide two to four mutually exclusive");
+    expect(revisePrompt).toMatch(/Do not silently convert or\s+rewrite the marked base plan/);
     expect(implementPrompt).toContain("The plan of record is established by");
     expect(implementPrompt).toContain("historical marked plans");
+  });
+
+  it("documents human authority over advisory planning recommendations", () => {
+    const planPrompt = readFileSync(".github/codex/prompts/plan.md", "utf8");
+    const workflowDocs = readFileSync("docs/github-change-workflow.md", "utf8");
+
+    expect(planPrompt).toMatch(/request secrets or sensitive\s+values/);
+    expect(planPrompt).toContain("select an option for the human");
+    expect(planPrompt).toContain("change labels");
+    expect(planPrompt).toContain("authorize implementation");
+    expect(workflowDocs).toContain("The owner records the chosen option");
+    expect(workflowDocs).toContain("removes `needs-decision`");
+    expect(workflowDocs).toMatch(/applies\s+`needs-planning`/);
+    expect(workflowDocs).toContain("NeedsDecision --> NeedsPlanning: human records choice");
   });
 
   it("keeps split publication GitHub-only and behind explicit approval", () => {
@@ -444,6 +490,9 @@ describe("workflow state", () => {
       "classification",
       "markdown",
       "blockingDecision",
+      "decisionOptions",
+      "recommendedOptionId",
+      "recommendationRationale",
       "splitReason",
       "children",
     ]));
@@ -483,6 +532,9 @@ describe("workflow state", () => {
       "reviewerChallengePoints",
       "machineImplementationDetails",
       "blockingDecision",
+      "decisionOptions",
+      "recommendedOptionId",
+      "recommendationRationale",
       "splitReason",
       "children",
     ];
@@ -504,6 +556,9 @@ describe("workflow state", () => {
       required: ["concept", "whatItIs", "whyUsed", "whyPreferred"],
     });
     expect(schema.properties.blockingDecision.type).toEqual(["string", "null"]);
+    expect(schema.properties.decisionOptions.type).toEqual(["array", "null"]);
+    expect(schema.properties.recommendedOptionId.type).toEqual(["string", "null"]);
+    expect(schema.properties.recommendationRationale.type).toEqual(["string", "null"]);
     expect(schema.properties.splitReason.type).toEqual(["string", "null"]);
     expect(schema.properties.children.type).toEqual(["array", "null"]);
     expect(schema.properties.children.items).toEqual(
@@ -516,11 +571,7 @@ describe("workflow state", () => {
 
   it("validates complete structured plans and classification metadata", () => {
     expect(validatePlanningResult(structuredFocusedResult)).toBe(structuredFocusedResult);
-    expect(validatePlanningResult({
-      ...structuredFocusedResult,
-      classification: "needs-decision",
-      blockingDecision: "Choose whether strict or permissive validation should govern concise plans.",
-    })).toBeTruthy();
+    expect(validatePlanningResult(structuredDecisionResult)).toBe(structuredDecisionResult);
     expect(validatePlanningResult({
       ...structuredFocusedResult,
       classification: "split-required",
@@ -570,6 +621,108 @@ describe("workflow state", () => {
     })).toThrow(/credential-like/);
   });
 
+  it("validates decision option boundaries and recommendation membership", () => {
+    expect(validatePlanningResult(structuredDecisionResult)).toBe(structuredDecisionResult);
+    expect(validatePlanningResult({
+      ...structuredDecisionResult,
+      decisionOptions: [
+        ...structuredDecisionResult.decisionOptions,
+        {
+          id: "minimal-validation",
+          label: "Minimal validation",
+          description: "Validate only required structure and public-text safety before publication.",
+          tradeoffs: ["Reduces false rejections but permits more low-value reviewer content."],
+        },
+        {
+          id: "defer-validation",
+          label: "Defer validation",
+          description: "Keep the current contract until more real planning results can be reviewed.",
+          tradeoffs: ["Avoids premature rules but leaves the current inconsistency unresolved."],
+        },
+      ],
+    })).toBeTruthy();
+    expect(() => validatePlanningResult({
+      ...structuredDecisionResult,
+      decisionOptions: [structuredDecisionResult.decisionOptions[0]],
+      recommendedOptionId: "strict-validation",
+    })).toThrow(/2-4/);
+    expect(() => validatePlanningResult({
+      ...structuredDecisionResult,
+      decisionOptions: [
+        ...structuredDecisionResult.decisionOptions,
+        ...structuredDecisionResult.decisionOptions,
+        {
+          id: "fifth-option",
+          label: "Fifth policy",
+          description: "Add another otherwise valid policy solely to exceed the supported option count.",
+          tradeoffs: ["Increases review effort without adding a distinct actionable outcome."],
+        },
+      ],
+    })).toThrow(/2-4/);
+    expect(() => validatePlanningResult({
+      ...structuredDecisionResult,
+      recommendedOptionId: "missing-option",
+    })).toThrow(/must reference/);
+    expect(() => validatePlanningResult({
+      ...structuredDecisionResult,
+      recommendedOptionId: null,
+    })).toThrow(/recommendedOptionId/);
+  });
+
+  it("rejects malformed, duplicate, filler, and unsafe decision content", () => {
+    expect(() => validatePlanningResult({
+      ...structuredDecisionResult,
+      decisionOptions: structuredDecisionResult.decisionOptions.map((option, index) =>
+        index === 1 ? { ...option, id: "strict-validation" } : option),
+    })).toThrow(/Duplicate decision option id/);
+    expect(() => validatePlanningResult({
+      ...structuredDecisionResult,
+      decisionOptions: structuredDecisionResult.decisionOptions.map((option, index) =>
+        index === 1 ? { ...option, label: "STRICT VALIDATION" } : option),
+    })).toThrow(/Duplicate decision option label/);
+    expect(() => validatePlanningResult({
+      ...structuredDecisionResult,
+      decisionOptions: structuredDecisionResult.decisionOptions.map((option, index) =>
+        index === 1 ? { ...option, label: "Option B" } : option),
+    })).toThrow(/generic filler/);
+    expect(() => validatePlanningResult({
+      ...structuredDecisionResult,
+      decisionOptions: structuredDecisionResult.decisionOptions.map((option, index) =>
+        index === 1 ? { ...option, unexpected: "field" } : option),
+    })).toThrow(/invalid fields/);
+    expect(() => validatePlanningResult({
+      ...structuredDecisionResult,
+      decisionOptions: structuredDecisionResult.decisionOptions.map((option, index) =>
+        index === 1
+          ? { ...option, description: "Publish <!-- codex-automation:unsafe --> content in public." }
+          : option),
+    })).toThrow(/reserved automation marker/);
+    expect(() => validatePlanningResult({
+      ...structuredDecisionResult,
+      recommendationRationale: "This option is certainly correct and cannot produce an adverse result.",
+    })).toThrow(/unsupported certainty/);
+  });
+
+  it("requires decision-only fields to be null for focused and split plans", () => {
+    for (const field of [
+      "decisionOptions",
+      "recommendedOptionId",
+      "recommendationRationale",
+    ]) {
+      expect(() => validatePlanningResult({
+        ...structuredFocusedResult,
+        [field]: field === "decisionOptions" ? structuredDecisionResult.decisionOptions : "unexpected",
+      })).toThrow(/decision fields must be null/);
+    }
+    expect(() => validatePlanningResult({
+      ...structuredFocusedResult,
+      classification: "split-required",
+      splitReason: splitResult.splitReason,
+      children: splitResult.children,
+      decisionOptions: structuredDecisionResult.decisionOptions,
+    })).toThrow(/decision fields must be null/);
+  });
+
   it("renders structured plans in the stable reviewer-oriented order", () => {
     const rendered = renderPlanningDetails(structuredFocusedResult);
     const headings = [
@@ -601,11 +754,7 @@ describe("workflow state", () => {
   });
 
   it("preserves decision and split details inside the structured review layout", () => {
-    const decision = renderPlanningDetails({
-      ...structuredFocusedResult,
-      classification: "needs-decision",
-      blockingDecision: "Choose whether strict or permissive validation should govern concise plans.",
-    });
+    const decision = renderPlanningDetails(structuredDecisionResult);
     const split = renderPlanningDetails({
       ...structuredFocusedResult,
       classification: "split-required",
@@ -614,7 +763,10 @@ describe("workflow state", () => {
     });
 
     expect(decision).toContain("### Human Decision Required");
-    expect(decision).toContain("Choose whether strict or permissive validation");
+    expect(decision).toContain("Choose which validation policy");
+    expect(decision).toContain("#### 2. Balanced validation — Recommended");
+    expect(decision).toContain("### Recommendation (Advisory)");
+    expect(decision).toContain("remains `needs-decision` until a human records a choice");
     expect(split).toContain("### Proposed Decomposition");
     expect(split).toContain("#### 1. Implement schema controls");
   });

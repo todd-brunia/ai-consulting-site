@@ -133,6 +133,9 @@ function assertStructuredPlan(result) {
     "reviewerChallengePoints",
     "machineImplementationDetails",
     "blockingDecision",
+    "decisionOptions",
+    "recommendedOptionId",
+    "recommendationRationale",
     "splitReason",
     "children",
   ]);
@@ -219,6 +222,82 @@ function assertStructuredPlan(result) {
   }
 }
 
+function assertDecisionContract(result) {
+  const fields = ["decisionOptions", "recommendedOptionId", "recommendationRationale"];
+  const hasDecisionContract = fields.some((field) => Object.hasOwn(result, field));
+  if (!hasDecisionContract && result.contractVersion === undefined) return;
+
+  if (result.classification !== "needs-decision") {
+    if (fields.some((field) => result[field] !== null)) {
+      throw new Error("Focused and split-required decision fields must be null.");
+    }
+    return;
+  }
+
+  if (!Array.isArray(result.decisionOptions)
+    || result.decisionOptions.length < 2
+    || result.decisionOptions.length > 4) {
+    throw new Error("decisionOptions must contain 2-4 options for needs-decision.");
+  }
+  const ids = new Set();
+  const labels = new Set();
+  for (const [index, option] of result.decisionOptions.entries()) {
+    if (!option || typeof option !== "object" || Array.isArray(option)) {
+      throw new Error(`decisionOptions[${index}] is invalid.`);
+    }
+    const fields = Object.keys(option);
+    const expected = ["id", "label", "description", "tradeoffs"];
+    if (fields.length !== expected.length || expected.some((field) => !fields.includes(field))) {
+      throw new Error(`decisionOptions[${index}] has invalid fields.`);
+    }
+    const id = assertText(option.id, `decisionOptions[${index}].id`, { min: 3, max: 64 });
+    if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(id)) {
+      throw new Error(`decisionOptions[${index}].id must be stable kebab-case.`);
+    }
+    if (ids.has(id)) throw new Error(`Duplicate decision option id: ${id}`);
+    ids.add(id);
+
+    const label = assertText(option.label, `decisionOptions[${index}].label`, { min: 3, max: 100 });
+    const normalizedLabel = label.trim().toLocaleLowerCase("en-US");
+    if (/^(?:option|choice)(?:\s+[a-d0-9]+)?[.!]?$/i.test(label.trim())
+      || /^(?:none|n\/a|other|tbd)[.!]?$/i.test(label.trim())) {
+      throw new Error(`decisionOptions[${index}].label cannot be generic filler.`);
+    }
+    if (labels.has(normalizedLabel)) throw new Error(`Duplicate decision option label: ${label}`);
+    labels.add(normalizedLabel);
+
+    assertText(option.description, `decisionOptions[${index}].description`, {
+      min: 20,
+      max: 1_500,
+    });
+    assertTextList(option.tradeoffs, `decisionOptions[${index}].tradeoffs`, {
+      min: 1,
+      max: 8,
+      itemMin: 10,
+      itemMax: 750,
+    });
+    assertUniqueList(option.tradeoffs, `decisionOptions[${index}].tradeoffs`);
+    if (option.tradeoffs.some((tradeoff) => /^(?:none|n\/a|no tradeoffs?|tbd)[.!]?$/i.test(tradeoff.trim()))) {
+      throw new Error(`decisionOptions[${index}].tradeoffs cannot contain generic filler.`);
+    }
+  }
+
+  const recommendedOptionId = assertText(result.recommendedOptionId, "recommendedOptionId", {
+    min: 3,
+    max: 64,
+  });
+  if (!ids.has(recommendedOptionId)) {
+    throw new Error("recommendedOptionId must reference a supplied decision option.");
+  }
+  const rationale = assertText(result.recommendationRationale, "recommendationRationale", {
+    min: 30,
+    max: 2_000,
+  });
+  if (/\b(?:guaranteed|certainly|obviously|without (?:any )?risk)\b/i.test(rationale)) {
+    throw new Error("recommendationRationale contains unsupported certainty.");
+  }
+}
+
 export function validatePlanningResult(result) {
   if (!result || typeof result !== "object" || !PLANNING_CLASSIFICATIONS.has(result.classification)) {
     throw new Error("Planning result has an invalid classification.");
@@ -228,6 +307,7 @@ export function validatePlanningResult(result) {
   } else {
     assertStructuredPlan(result);
   }
+  assertDecisionContract(result);
 
   if (result.classification === "focused") {
     if (result.blockingDecision !== null || result.splitReason !== null || result.children !== null) {
@@ -340,6 +420,22 @@ function renderSplitChildren(children, heading = "###") {
   }).join("\n\n");
 }
 
+function renderDecisionDetails(result, heading = "###") {
+  if (!Array.isArray(result.decisionOptions)) {
+    return `${heading} Human Decision Required\n\n${result.blockingDecision}`;
+  }
+  const recommended = result.decisionOptions.find(
+    (option) => option.id === result.recommendedOptionId,
+  );
+  const options = result.decisionOptions.map((option, index) => {
+    const recommendation = option.id === result.recommendedOptionId ? " — Recommended" : "";
+    const tradeoffs = option.tradeoffs.map((tradeoff) => `- ${tradeoff}`).join("\n");
+    return `${heading}# ${index + 1}. ${option.label}${recommendation}\n\n${option.description}\n\nTradeoffs:\n\n${tradeoffs}`;
+  }).join("\n\n");
+
+  return `${heading} Human Decision Required\n\n${result.blockingDecision}\n\n${options}\n\n${heading} Recommendation (Advisory)\n\n**${recommended.label}** (\`${recommended.id}\`)\n\n${result.recommendationRationale}\n\nThis recommendation is advisory. The issue remains \`needs-decision\` until a human records a choice and returns it to planning.`;
+}
+
 export function renderPlanningDetails(result) {
   validatePlanningResult(result);
   if (result.contractVersion === "plan/v2") {
@@ -356,7 +452,7 @@ export function renderPlanningDetails(result) {
       ).join("\n\n")
       : "No concepts require additional explanation for this plan.";
     const classificationDetails = result.classification === "needs-decision"
-      ? `\n\n### Human Decision Required\n\n${result.blockingDecision}`
+      ? `\n\n${renderDecisionDetails(result)}`
       : result.classification === "split-required"
         ? `\n\n### Proposed Decomposition\n\n${result.splitReason}\n\n${renderSplitChildren(result.children, "####")}`
         : "";
@@ -410,7 +506,7 @@ ${result.machineImplementationDetails}`;
   }
   if (result.classification === "focused") return "";
   if (result.classification === "needs-decision") {
-    return `\n\n## Human decision required\n\n${result.blockingDecision}`;
+    return `\n\n${renderDecisionDetails(result, "##")}`;
   }
   const children = renderSplitChildren(result.children);
   return `\n\n## Proposed decomposition\n\n${result.splitReason}\n\n${children}`;

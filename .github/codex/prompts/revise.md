@@ -12,8 +12,14 @@ the owner explicitly requested a consolidated replacement plan.
 For a normal focused amendment, return the legacy planning envelope required by
 the response schema: put only the amendment in `markdown`, retain the applicable
 classification, and populate `blockingDecision`, `splitReason`, and `children`
-according to that classification. The trusted publisher will append it as a
-marked amendment. Do not silently convert or rewrite the marked base plan.
+according to that classification. Always return `decisionOptions`,
+`recommendedOptionId`, and `recommendationRationale` as required by the legacy
+response schema. For `needs-decision`, provide two to four mutually exclusive
+actionable options and one evidence-grounded advisory recommendation using the
+same shapes and human-authority limits documented in the planning prompt. For
+other classifications, return all three as JSON `null`. The trusted publisher
+will append the response as a marked amendment. Do not silently convert or
+rewrite the marked base plan.
 
 If the owner explicitly requests a consolidated replacement, use the complete
 structured contract described by the planning prompt only when the workflow's

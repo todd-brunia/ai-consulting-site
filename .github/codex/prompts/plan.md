@@ -42,12 +42,25 @@ Return the `plan/v2` structured contract. Always provide every schema field:
   later implementation agent. Do not authorize implementation.
 - `blockingDecision`, `splitReason`, and `children`: classification metadata;
   use JSON `null` whenever a field does not apply.
+- `decisionOptions`, `recommendedOptionId`, and `recommendationRationale`:
+  advisory decision support described below; all three are JSON `null` unless
+  the classification is `needs-decision`.
 
 For `focused`, all decision and split metadata is null. For `needs-decision`,
-state the single blocking decision and return null split fields; use the other
-fields to explain what is known and why implementation remains blocked. For
+state one clear blocking question and return null split fields. Provide two to
+four mutually exclusive, actionable `decisionOptions`, each with a stable
+kebab-case `id`, a specific short `label`, a `description` of the practical
+effect, and one or more issue-specific `tradeoffs`. Set `recommendedOptionId`
+to exactly one supplied ID and explain the advisory recommendation in
+`recommendationRationale`, grounded in observable issue and repository
+constraints and candid about uncertainty. Do not use generic choices, invent
+requirements, claim unsupported certainty, request secrets or sensitive
+values, select an option for the human, resolve the decision, change labels, or
+authorize implementation. Use the other presentation fields to explain what is
+known and why implementation remains blocked. For
 `split-required`, return a null blocking decision plus a concise reason and two
-to ten children. Each child needs a stable kebab-case ID, bounded title and
+to ten children, and return null decision-option and recommendation fields.
+Each child needs a stable kebab-case ID, bounded title and
 outcome, independently testable acceptance criteria, explicit dependencies
 (`None` when there are none), included and excluded scope, and suggested
 non-state labels. Do not claim that a plan or child is approved or ready for

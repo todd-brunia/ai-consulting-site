@@ -2,6 +2,7 @@ import {
   SPLIT_CHECKLIST_PREFIX,
   SPLIT_CHILD_PREFIX,
   STATE_LABELS,
+  buildContext,
   transitionFor,
   validatePlanningResult,
   validatePublicText,
@@ -17,6 +18,50 @@ export function splitChildMarker(parentNumber, childId, digest) {
 
 export function splitChecklistMarker(digest) {
   return `${SPLIT_CHECKLIST_PREFIX}${digest} -->`;
+}
+
+const ADVANCED_CHILD_LABELS = new Set(STATE_LABELS.filter((label) => label !== "needs-planning"));
+
+function labelNames(issue) {
+  return (issue.labels ?? []).map((label) => typeof label === "string" ? label : label.name);
+}
+
+export function planningHandoff({ parentNumber, childId, childNumber, digest, childMarker }) {
+  return {
+    stage: "plan",
+    parentNumber,
+    fingerprint: digest,
+    childId,
+    childNumber,
+    childMarker,
+  };
+}
+
+export function validatePlanningHandoff({ handoff, parentNumber, digest, issue, comments }) {
+  if (!handoff || handoff.stage !== "plan") throw new Error("Split handoffs can request only the plan stage.");
+  if (handoff.parentNumber !== parentNumber || handoff.fingerprint !== digest) {
+    throw new Error("Split handoff provenance does not match the approved parent.");
+  }
+  const expectedMarker = splitChildMarker(parentNumber, handoff.childId, digest);
+  if (handoff.childNumber !== issue.number
+    || handoff.childMarker !== expectedMarker
+    || !issue.body?.includes(expectedMarker)) {
+    throw new Error("Split handoff child identity is invalid.");
+  }
+
+  const labels = labelNames(issue);
+  if (issue.state !== "open" || !labels.includes("needs-planning")) {
+    return { action: "skip", reason: "Child is no longer awaiting planning." };
+  }
+  if (labels.some((label) => ADVANCED_CHILD_LABELS.has(label))) {
+    return { action: "skip", reason: "Child has advanced beyond needs-planning." };
+  }
+
+  const context = buildContext({ issue, comments, stage: "plan" });
+  if (comments.some((comment) => comment.body?.includes(context.marker))) {
+    return { action: "skip", reason: "The current child planning snapshot was already processed." };
+  }
+  return { action: "run", ...context };
 }
 
 export function childLabels(parentLabels, suggestedLabels) {
@@ -118,6 +163,7 @@ export async function publishSplit({ github, owner, repo, parent, result, digest
   ]));
   const found = await findMarkedChildren({ github, owner, repo, markers });
   const confirmed = [];
+  const handoffs = [];
 
   for (const child of result.children) {
     let issue = found.get(child.id);
@@ -135,6 +181,18 @@ export async function publishSplit({ github, owner, repo, parent, result, digest
       throw new Error(`Child ${child.id} does not contain the expected marker.`);
     }
     confirmed.push({ number: issue.number, title: issue.title });
+    const labels = labelNames(issue);
+    if (issue.state !== "closed"
+      && labels.includes("needs-planning")
+      && !labels.some((label) => ADVANCED_CHILD_LABELS.has(label))) {
+      handoffs.push(planningHandoff({
+        parentNumber: parent.number,
+        childId: child.id,
+        childNumber: issue.number,
+        digest,
+        childMarker: markers.get(child.id),
+      }));
+    }
   }
 
   if (confirmed.length !== result.children.length) {
@@ -160,5 +218,5 @@ export async function publishSplit({ github, owner, repo, parent, result, digest
     state: "closed",
     state_reason: "not_planned",
   });
-  return confirmed;
+  return { confirmed, handoffs };
 }

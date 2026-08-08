@@ -264,7 +264,7 @@ describe("workflow state", () => {
     const workflow = readFileSync(".github/workflows/codex-label-automation.yml", "utf8");
     const split = workflow.slice(
       workflow.indexOf("  publish_split:"),
-      workflow.indexOf("  report_failure:"),
+      workflow.indexOf("  plan_split_children:"),
     );
 
     expect(split).toContain("github.event.label.name == 'approved-for-split'");
@@ -276,6 +276,37 @@ describe("workflow state", () => {
     );
     expect(split).not.toContain("OPENAI_API_KEY");
     expect(split).not.toContain("openai/codex-action");
+  });
+
+  it("continues approved splits through a bounded plan-only child handoff", () => {
+    const workflow = readFileSync(".github/workflows/codex-label-automation.yml", "utf8");
+    const handoff = workflow.slice(
+      workflow.indexOf("  plan_split_children:"),
+      workflow.indexOf("  report_failure:"),
+    );
+
+    expect(handoff).toContain("needs: publish_split");
+    expect(handoff).toContain("publisher.validatePlanningHandoff");
+    expect(handoff).toContain("handoff.childNumber");
+    expect(handoff).toContain("parentNumber: Number(process.env.PARENT_NUMBER)");
+    expect(handoff).toContain("digest: process.env.FINGERPRINT");
+    expect(handoff).toContain('stage: "plan"');
+    expect(handoff).toContain("permission-profile: :read-only");
+    expect(handoff).toContain("contents: read");
+    expect(handoff).toContain("issues: write");
+    expect(handoff).not.toContain("approved-for-ai-build");
+    expect(handoff).not.toContain("git switch");
+    expect(handoff).not.toContain("pulls.create");
+    expect(handoff).not.toContain("contents: write");
+  });
+
+  it("does not broadly trust bot label events for planning", () => {
+    const workflow = readFileSync(".github/workflows/codex-label-automation.yml", "utf8");
+
+    expect(workflow).toContain("actorType: context.payload.sender?.type || \"User\"");
+    expect(workflow).toContain("allowedActors: (process.env.ALLOWED_ACTORS || \"\").split(\",\")");
+    expect(workflow).not.toMatch(/ALLOWED_ACTORS:.*github-actions/);
+    expect(workflow).not.toMatch(/allow-bots:\s*true/);
   });
 
   it("loads trusted helpers before reporting a blocked automation failure", () => {

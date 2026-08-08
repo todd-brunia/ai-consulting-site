@@ -395,6 +395,10 @@ jobs:
       (github.event_name == 'issues' && github.event.label.name == 'approved-for-split')
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    outputs:
+      parent_number: ${{ steps.split_context.outputs.issue_number }}
+      fingerprint: ${{ steps.split_context.outputs.fingerprint }}
+      handoffs: ${{ steps.publish_children.outputs.handoffs || '[]' }}
     permissions:
       contents: read
       issues: read
@@ -458,6 +462,7 @@ jobs:
           private-key: ${{ secrets.CODEX_AUTOMATION_APP_PRIVATE_KEY }}
 
       - name: Create or reuse children and close confirmed parent
+        id: publish_children
         if: steps.split_context.outputs.action == 'run'
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         env:
@@ -478,7 +483,7 @@ jobs:
             });
             const proposal = state.approvedSplitProposal(comments);
             state.validateSplitFingerprint(proposal, process.env.FINGERPRINT);
-            await publisher.publishSplit({
+            const published = await publisher.publishSplit({
               github,
               owner: context.repo.owner,
               repo: context.repo.repo,
@@ -486,6 +491,159 @@ jobs:
               result: proposal.result,
               digest: proposal.digest,
             });
+            core.setOutput("handoffs", JSON.stringify(published.handoffs));
+
+  plan_split_children:
+    name: Plan split child ${{ matrix.handoff.childNumber }}
+    needs: publish_split
+    if: >-
+      needs.publish_split.result == 'success' &&
+      needs.publish_split.outputs.handoffs != '[]'
+    strategy:
+      fail-fast: false
+      matrix:
+        handoff: ${{ fromJSON(needs.publish_split.outputs.handoffs) }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+      issues: write
+    steps:
+      - name: Check out trusted planning code
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+          persist-credentials: false
+
+      - name: Validate exact child handoff and idempotency
+        id: child_context
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        env:
+          HANDOFF: ${{ toJSON(matrix.handoff) }}
+          PARENT_NUMBER: ${{ needs.publish_split.outputs.parent_number }}
+          FINGERPRINT: ${{ needs.publish_split.outputs.fingerprint }}
+        with:
+          github-token: ${{ github.token }}
+          script: |
+            const fs = require("node:fs");
+            const publisher = await import(`${process.env.GITHUB_WORKSPACE}/.github/scripts/codex-split-publisher.mjs`);
+            const handoff = JSON.parse(process.env.HANDOFF);
+            const { data: issue } = await github.rest.issues.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: handoff.childNumber,
+            });
+            const comments = await github.paginate(github.rest.issues.listComments, {
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: handoff.childNumber,
+              per_page: 100,
+            });
+            const result = publisher.validatePlanningHandoff({
+              handoff,
+              parentNumber: Number(process.env.PARENT_NUMBER),
+              digest: process.env.FINGERPRINT,
+              issue,
+              comments,
+            });
+            core.setOutput("action", result.action);
+            core.setOutput("issue_number", String(handoff.childNumber));
+            core.setOutput("fingerprint", result.digest || "");
+            core.setOutput("marker", result.marker || "");
+            await core.summary.addHeading("Split child planning decision").addRaw(`${result.action}: ${result.reason || "plan"}`).write();
+            if (result.action !== "run") return;
+            fs.writeFileSync("codex-input.json", JSON.stringify({
+              stage: "plan",
+              fingerprint: result.digest,
+              source: result.source,
+            }, null, 2));
+
+      - name: Validate planning response schema compatibility
+        if: steps.child_context.outputs.action == 'run'
+        run: >-
+          node --input-type=module -e
+          "import fs from 'node:fs';
+          const {validateResponseSchemaCompatibility} = await import('./.github/scripts/codex-workflow-state.mjs');
+          validateResponseSchemaCompatibility(JSON.parse(fs.readFileSync('.github/codex/schemas/plan-v2.json', 'utf8')));"
+
+      - name: Run plan-only Codex
+        id: split_codex
+        if: steps.child_context.outputs.action == 'run'
+        uses: openai/codex-action@52fe01ec70a42f454c9d2ebd47598f9fd6893d56 # v1
+        with:
+          openai-api-key: ${{ secrets.OPENAI_API_KEY }}
+          model: gpt-5.6-luna
+          effort: low
+          prompt-file: .github/codex/prompts/plan.md
+          output-file: codex-output.json
+          permission-profile: :read-only
+          safety-strategy: drop-sudo
+          allow-users: ${{ vars.CODEX_ALLOWED_ACTORS }}
+          allow-bots: false
+          output-schema-file: .github/codex/schemas/plan-v2.json
+          codex-args: '["--ephemeral"]'
+
+      - name: Publish child planning response
+        if: steps.child_context.outputs.action == 'run'
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        env:
+          ISSUE_NUMBER: ${{ steps.child_context.outputs.issue_number }}
+          MARKER: ${{ steps.child_context.outputs.marker }}
+        with:
+          github-token: ${{ github.token }}
+          script: |
+            const fs = require("node:fs");
+            const helpers = await import(`${process.env.GITHUB_WORKSPACE}/.github/scripts/codex-workflow-state.mjs`);
+            const issueNumber = Number(process.env.ISSUE_NUMBER);
+            const parsed = JSON.parse(fs.readFileSync("codex-output.json", "utf8"));
+            helpers.validatePlanningResult(parsed);
+            const structured = parsed.classification === "split-required"
+              ? `\n${helpers.encodeSplitProposal(parsed, process.env.MARKER.match(/:([a-f0-9]{64}) -->$/)[1])}`
+              : "";
+            const body = `${process.env.MARKER}${structured}\n${helpers.PLAN_MARKER}\n## Codex implementation proposal\n\n${helpers.renderPlanningContent(parsed)}`;
+            helpers.validatePublicText(body);
+            await github.rest.issues.createComment({ owner: context.repo.owner, repo: context.repo.repo, issue_number: issueNumber, body });
+            const transition = helpers.transitionFor("plan", parsed.classification);
+            for (const name of transition.remove) {
+              try {
+                await github.rest.issues.removeLabel({ owner: context.repo.owner, repo: context.repo.repo, issue_number: issueNumber, name });
+              } catch (error) {
+                if (error.status !== 404) throw error;
+              }
+            }
+            for (const name of transition.add) {
+              await github.rest.issues.addLabels({ owner: context.repo.owner, repo: context.repo.repo, issue_number: issueNumber, labels: [name] });
+            }
+
+      - name: Report child planning failure
+        if: failure()
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        env:
+          ISSUE_NUMBER: ${{ steps.child_context.outputs.issue_number || needs.publish_split.outputs.parent_number }}
+          FINGERPRINT: ${{ matrix.handoff.fingerprint }}
+          VALIDATED_CHILD: ${{ steps.child_context.outputs.issue_number }}
+        with:
+          github-token: ${{ github.token }}
+          script: |
+            const issueNumber = Number(process.env.ISSUE_NUMBER);
+            const runUrl = `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
+            const marker = `<!-- codex-automation-failure:plan:issue-${issueNumber}:${process.env.FINGERPRINT} -->`;
+            const body = `${marker}\n## Codex automation blocked\n\nThe approved split plan-only handoff failed. Review the [workflow run](${runUrl}) and rerun its failed jobs after resolving the reported error.`;
+            const comments = await github.paginate(github.rest.issues.listComments, {
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: issueNumber,
+              per_page: 100,
+            });
+            const existing = comments.find((comment) => comment.body?.includes(marker));
+            if (existing) {
+              await github.rest.issues.updateComment({ owner: context.repo.owner, repo: context.repo.repo, comment_id: existing.id, body });
+            } else {
+              await github.rest.issues.createComment({ owner: context.repo.owner, repo: context.repo.repo, issue_number: issueNumber, body });
+            }
+            if (process.env.VALIDATED_CHILD) {
+              await github.rest.issues.addLabels({ owner: context.repo.owner, repo: context.repo.repo, issue_number: issueNumber, labels: ["blocked"] });
+            }
 
   report_failure:
     name: Report blocked automation

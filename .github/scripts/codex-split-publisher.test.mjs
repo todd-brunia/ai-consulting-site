@@ -3,8 +3,10 @@ import { describe, expect, it, vi } from "vitest";
 import {
   childBody,
   childLabels,
+  planningHandoff,
   publishSplit,
   splitChildMarker,
+  validatePlanningHandoff,
 } from "./codex-split-publisher.mjs";
 
 const digest = "a".repeat(64);
@@ -49,6 +51,7 @@ function mockGithub({ existing = [], comments = [], failOnCreate = null } = {}) 
         title: input.title,
         body: input.body,
         labels: input.labels,
+        state: "open",
       };
       created.push(data);
       return { data };
@@ -113,14 +116,18 @@ describe("split publisher", () => {
 
   it("creates all missing children, reconciles a checklist, then closes the parent", async () => {
     const { github, issues, created } = mockGithub();
-    const confirmed = await publishSplit({ github, owner: "todd-brunia", repo: "site", parent, result, digest });
+    const published = await publishSplit({ github, owner: "todd-brunia", repo: "site", parent, result, digest });
 
     expect(created).toHaveLength(2);
     expect(created.map(({ labels }) => labels)).toEqual([
       ["needs-planning", "workflow"],
       ["needs-planning", "workflow"],
     ]);
-    expect(confirmed.map(({ number }) => number)).toEqual([100, 101]);
+    expect(published.confirmed.map(({ number }) => number)).toEqual([100, 101]);
+    expect(published.handoffs.map(({ childNumber, stage }) => ({ childNumber, stage }))).toEqual([
+      { childNumber: 100, stage: "plan" },
+      { childNumber: 101, stage: "plan" },
+    ]);
     expect(issues.createComment).toHaveBeenCalledOnce();
     expect(issues.removeLabel).toHaveBeenCalledTimes(3);
     expect(issues.addLabels).toHaveBeenCalledWith(expect.objectContaining({
@@ -139,12 +146,15 @@ describe("split publisher", () => {
       number: 88,
       title: children[0].title,
       body: childBody({ parentNumber: 60, child: children[0], digest }),
+      labels: ["needs-planning", "workflow"],
+      state: "open",
     }];
     const { github, issues, created } = mockGithub({ existing });
-    const confirmed = await publishSplit({ github, owner: "todd-brunia", repo: "site", parent, result, digest });
+    const published = await publishSplit({ github, owner: "todd-brunia", repo: "site", parent, result, digest });
 
     expect(created).toHaveLength(1);
-    expect(confirmed.map(({ number }) => number)).toEqual([88, 100]);
+    expect(published.confirmed.map(({ number }) => number)).toEqual([88, 100]);
+    expect(published.handoffs.map(({ childNumber }) => childNumber)).toEqual([88, 100]);
     expect(issues.removeLabel.mock.calls.some(([input]) => input.issue_number === 88)).toBe(false);
     expect(issues.addLabels.mock.calls.some(([input]) => input.issue_number === 88)).toBe(false);
     expect(issues.update).toHaveBeenCalledOnce();
@@ -214,5 +224,91 @@ describe("split publisher", () => {
       .rejects.toThrow(/Multiple issues/);
     expect(issues.create).not.toHaveBeenCalled();
     expect(issues.update).not.toHaveBeenCalled();
+  });
+
+  it("validates exact plan-only handoffs and rejects tampered child identity", () => {
+    const child = children[0];
+    const childMarker = splitChildMarker(60, child.id, digest);
+    const handoff = planningHandoff({
+      parentNumber: 60,
+      childId: child.id,
+      childNumber: 88,
+      digest,
+      childMarker,
+    });
+    const issue = {
+      number: 88,
+      title: child.title,
+      body: childBody({ parentNumber: 60, child, digest }),
+      state: "open",
+      labels: ["needs-planning", "workflow"],
+    };
+
+    expect(validatePlanningHandoff({ handoff, parentNumber: 60, digest, issue, comments: [] }))
+      .toMatchObject({ action: "run" });
+    expect(() => validatePlanningHandoff({
+      handoff: { ...handoff, childNumber: 89 },
+      parentNumber: 60,
+      digest,
+      issue,
+      comments: [],
+    })).toThrow(/identity/);
+    expect(() => validatePlanningHandoff({
+      handoff: { ...handoff, stage: "implement" },
+      parentNumber: 60,
+      digest,
+      issue,
+      comments: [],
+    })).toThrow(/only the plan stage/);
+  });
+
+  it("skips replayed handoffs and children that advanced beyond planning", () => {
+    const child = children[0];
+    const childMarker = splitChildMarker(60, child.id, digest);
+    const handoff = planningHandoff({
+      parentNumber: 60,
+      childId: child.id,
+      childNumber: 88,
+      digest,
+      childMarker,
+    });
+    const issue = {
+      number: 88,
+      title: child.title,
+      body: childBody({ parentNumber: 60, child, digest }),
+      state: "open",
+      labels: ["needs-planning", "workflow"],
+    };
+    const current = validatePlanningHandoff({ handoff, parentNumber: 60, digest, issue, comments: [] });
+
+    expect(validatePlanningHandoff({
+      handoff,
+      parentNumber: 60,
+      digest,
+      issue,
+      comments: [{ body: current.marker }],
+    })).toMatchObject({ action: "skip", reason: expect.stringMatching(/already processed/) });
+    expect(validatePlanningHandoff({
+      handoff,
+      parentNumber: 60,
+      digest,
+      issue: { ...issue, labels: ["needs-planning", "plan-ready"] },
+      comments: [],
+    })).toMatchObject({ action: "skip", reason: expect.stringMatching(/advanced/) });
+  });
+
+  it("does not hand off reused children that already advanced", async () => {
+    const existing = [{
+      number: 88,
+      title: children[0].title,
+      body: childBody({ parentNumber: 60, child: children[0], digest }),
+      labels: ["plan-ready", "workflow"],
+      state: "open",
+    }];
+    const { github } = mockGithub({ existing });
+    const published = await publishSplit({ github, owner: "todd-brunia", repo: "site", parent, result, digest });
+
+    expect(published.confirmed.map(({ number }) => number)).toEqual([88, 100]);
+    expect(published.handoffs.map(({ childNumber }) => childNumber)).toEqual([100]);
   });
 });

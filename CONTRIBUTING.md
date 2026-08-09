@@ -127,6 +127,11 @@ planned. Partial failure
 preserves children, leaves the parent open, removes `approved-for-split`, and
 applies `blocked`. Resolve the cause, remove `blocked`, and reapply
 `approved-for-split` to resume. Conflicting markers require human inspection.
+New split comments keep the complete review plan visible while storing only a
+compact, versioned digest-and-children envelope in the hidden publication
+marker. Historical full-result markers remain valid during the documented
+compatibility window. Both forms are validated and normalized before a human
+`approved-for-split` action can create children.
 
 - If revisions are needed, apply `changes-requested` and comment with specific
   feedback. Codex responds only to that feedback so the issue can serve as a

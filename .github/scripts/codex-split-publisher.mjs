@@ -4,8 +4,8 @@ import {
   STATE_LABELS,
   buildContext,
   transitionFor,
-  validatePlanningResult,
   validatePublicText,
+  validateSplitChildren,
 } from "./codex-workflow-state.mjs";
 
 function list(items) {
@@ -149,15 +149,14 @@ async function reconcileChecklist({ github, owner, repo, parentNumber, digest, c
   }
 }
 
-export async function publishSplit({ github, owner, repo, parent, result, digest }) {
-  validatePlanningResult(result);
-  if (result.classification !== "split-required") throw new Error("Split publication requires a split proposal.");
+export async function publishSplit({ github, owner, repo, parent, children, digest }) {
+  validateSplitChildren(children);
   const parentLabels = parent.labels.map((label) => typeof label === "string" ? label : label.name);
   if (parent.state !== "open" || !parentLabels.includes("approved-for-split")) {
     throw new Error("The parent is no longer open and approved for splitting.");
   }
 
-  const markers = new Map(result.children.map((child) => [
+  const markers = new Map(children.map((child) => [
     child.id,
     splitChildMarker(parent.number, child.id, digest),
   ]));
@@ -165,7 +164,7 @@ export async function publishSplit({ github, owner, repo, parent, result, digest
   const confirmed = [];
   const handoffs = [];
 
-  for (const child of result.children) {
+  for (const child of children) {
     let issue = found.get(child.id);
     if (!issue) {
       const response = await github.rest.issues.create({
@@ -195,7 +194,7 @@ export async function publishSplit({ github, owner, repo, parent, result, digest
     }
   }
 
-  if (confirmed.length !== result.children.length) {
+  if (confirmed.length !== children.length) {
     throw new Error("Not every proposed child was confirmed.");
   }
   await reconcileChecklist({ github, owner, repo, parentNumber: parent.number, digest, children: confirmed });

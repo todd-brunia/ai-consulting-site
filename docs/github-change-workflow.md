@@ -161,6 +161,27 @@ Trusted comments use reserved markers to preserve provenance and replay safety:
 - split proposal, child, and checklist markers make approved decomposition
   publication retry-safe.
 
+New split proposal comments encode a compact `split/v2` envelope containing
+only the planning fingerprint and the exact normalized child specifications
+needed by the trusted split publisher. The broader human-review summary remains
+visible Markdown and is not duplicated inside the hidden marker. The decoder
+continues to accept historical `{ digest, result }` (`split/v1`) markers so an
+already reviewed proposal remains approvable; new comments emit only
+`split/v2`. Both versions normalize to the same trusted digest-and-children
+contract before authorization or publication. Keep legacy decoding until a
+repository inventory confirms that no open issue has a reviewable or approved
+legacy split proposal; removing it requires a separate tracked change and
+regression update. Historical comments are never rewritten in place.
+
+Trusted planning publication enforces separate byte budgets for visible review
+content and the encoded split marker, followed by the existing 20,000-byte
+limit on the complete issue comment. Byte accounting uses UTF-8 bytes rather
+than JavaScript character count. An oversize failure reports only the component
+name, measured bytes, and configured limit; it never echoes model content or
+the encoded proposal. The normal planning publisher and the trusted split-child
+planning handoff use the same composer so their marker layout and limits remain
+aligned.
+
 Only trusted repository code writes reserved markers. Historical comments with
 the implementation-plan marker remain usable regardless of their heading
 layout, and later trusted amendments remain part of the planning snapshot.

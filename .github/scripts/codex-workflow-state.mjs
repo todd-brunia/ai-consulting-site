@@ -3,6 +3,7 @@ import { createHash } from "node:crypto";
 export const PLAN_MARKER = "<!-- codex-implementation-plan -->";
 export const AUTOMATION_MARKER_PREFIX = "<!-- codex-automation:";
 export const SPLIT_PROPOSAL_PREFIX = "<!-- codex-split-proposal:";
+export const SPLIT_PROPOSAL_VERSION = "split/v2";
 export const SPLIT_CHILD_PREFIX = "<!-- codex-split-child:";
 export const SPLIT_CHECKLIST_PREFIX = "<!-- codex-split-checklist:";
 export const STATE_LABELS = [
@@ -32,6 +33,12 @@ export const PLANNING_CLASSIFICATIONS = new Set([
   "needs-decision",
   "split-required",
 ]);
+
+export const PLANNING_PUBLICATION_BUDGETS = Object.freeze({
+  visibleBytes: 15_000,
+  splitMarkerBytes: 6_000,
+  combinedBytes: 20_000,
+});
 
 const SUPPORTED_RESPONSE_SCHEMA_KEYWORDS = new Set([
   "$schema",
@@ -327,12 +334,33 @@ export function validatePlanningResult(result) {
     throw new Error("Split-required blockingDecision must be null.");
   }
   assertText(result.splitReason, "splitReason", { min: 10 });
-  if (!Array.isArray(result.children) || result.children.length < 2 || result.children.length > 10) {
+  validateSplitChildren(result.children);
+  return result;
+}
+
+export function validateSplitChildren(children) {
+  if (!Array.isArray(children) || children.length < 2 || children.length > 10) {
     throw new Error("A split proposal must contain 2-10 children.");
   }
   const ids = new Set();
-  for (const [index, child] of result.children.entries()) {
-    if (!child || typeof child !== "object") throw new Error(`children[${index}] is invalid.`);
+  for (const [index, child] of children.entries()) {
+    if (!child || typeof child !== "object" || Array.isArray(child)) {
+      throw new Error(`children[${index}] is invalid.`);
+    }
+    const fields = Object.keys(child);
+    const expected = [
+      "id",
+      "title",
+      "outcome",
+      "acceptanceCriteria",
+      "dependencies",
+      "includedScope",
+      "excludedScope",
+      "suggestedLabels",
+    ];
+    if (fields.length !== expected.length || expected.some((field) => !fields.includes(field))) {
+      throw new Error(`children[${index}] has invalid fields.`);
+    }
     if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(child.id ?? "") || child.id.length < 3 || child.id.length > 64) {
       throw new Error(`children[${index}].id must be stable kebab-case.`);
     }
@@ -349,7 +377,7 @@ export function validatePlanningResult(result) {
       throw new Error(`children[${index}].suggestedLabels must be unique.`);
     }
   }
-  return result;
+  return children;
 }
 
 export function encodeSplitProposal(result, digest) {
@@ -357,8 +385,37 @@ export function encodeSplitProposal(result, digest) {
   if (result.classification !== "split-required") {
     throw new Error("Only split-required results have a split proposal.");
   }
-  const payload = Buffer.from(JSON.stringify({ digest, result }), "utf8").toString("base64url");
+  const envelope = validateSplitProposalEnvelope({
+    version: SPLIT_PROPOSAL_VERSION,
+    digest,
+    children: result.children,
+  });
+  const payload = Buffer.from(JSON.stringify(envelope), "utf8").toString("base64url");
   return `${SPLIT_PROPOSAL_PREFIX}${payload} -->`;
+}
+
+function validateDigest(digest) {
+  if (!/^[a-f0-9]{64}$/.test(digest ?? "")) {
+    throw new Error("Split proposal fingerprint is invalid.");
+  }
+  return digest;
+}
+
+export function validateSplitProposalEnvelope(envelope) {
+  if (!envelope || typeof envelope !== "object" || Array.isArray(envelope)) {
+    throw new Error("Split proposal envelope is invalid.");
+  }
+  const fields = Object.keys(envelope);
+  const expected = ["version", "digest", "children"];
+  if (fields.length !== expected.length || expected.some((field) => !fields.includes(field))) {
+    throw new Error("Split proposal envelope has invalid fields.");
+  }
+  if (envelope.version !== SPLIT_PROPOSAL_VERSION) {
+    throw new Error("Split proposal envelope version is unsupported.");
+  }
+  validateDigest(envelope.digest);
+  validateSplitChildren(envelope.children);
+  return envelope;
 }
 
 export function decodeSplitProposal(comment) {
@@ -373,14 +430,20 @@ export function decodeSplitProposal(comment) {
   } catch {
     throw new Error("Split proposal payload is malformed.");
   }
-  if (!/^[a-f0-9]{64}$/.test(parsed.digest ?? "")) {
-    throw new Error("Split proposal fingerprint is invalid.");
+  if (Object.hasOwn(parsed, "version")) {
+    const envelope = validateSplitProposalEnvelope(parsed);
+    return { version: envelope.version, digest: envelope.digest, children: envelope.children };
   }
+  const fields = Object.keys(parsed);
+  if (fields.length !== 2 || !fields.includes("digest") || !fields.includes("result")) {
+    throw new Error("Legacy split proposal has invalid fields.");
+  }
+  validateDigest(parsed.digest);
   validatePlanningResult(parsed.result);
   if (parsed.result.classification !== "split-required") {
     throw new Error("Embedded proposal is not split-required.");
   }
-  return parsed;
+  return { version: "split/v1", digest: parsed.digest, children: parsed.result.children };
 }
 
 export function approvedSplitProposal(comments) {
@@ -663,7 +726,7 @@ export function evaluateTrigger({
   if (requestedStage === "split") {
     try {
       const proposal = approvedSplitProposal(comments);
-      return { action: "run", digest: proposal.digest, source: proposal.result };
+      return { action: "run", digest: proposal.digest, source: proposal };
     } catch (error) {
       return { action: "block", reason: error.message };
     }
@@ -712,6 +775,40 @@ export function validatePublicText(text, { maxBytes = 20_000 } = {}) {
     throw new Error("Response contains a credential-like value.");
   }
   return text;
+}
+
+function validateByteBudget(text, component, maxBytes) {
+  const bytes = Buffer.byteLength(text);
+  if (bytes > maxBytes) {
+    throw new Error(`${component} exceeds its publication budget (${bytes} > ${maxBytes} bytes).`);
+  }
+  return bytes;
+}
+
+export function composePlanningComment({ stage, automationMarker, result, budgets = PLANNING_PUBLICATION_BUDGETS }) {
+  validatePlanningResult(result);
+  if (stage !== "plan" && stage !== "revise") {
+    throw new Error("Planning comments support only plan or revise stages.");
+  }
+  const digest = automationMarker.match(/:([a-f0-9]{64}) -->$/)?.[1];
+  if (!digest) throw new Error("Planning automation marker is invalid.");
+
+  const visible = renderPlanningContent(result);
+  validateByteBudget(visible, "Visible planning content", budgets.visibleBytes);
+  const splitMarker = result.classification === "split-required"
+    ? encodeSplitProposal(result, digest)
+    : "";
+  if (splitMarker) {
+    validateByteBudget(splitMarker, "Encoded split proposal", budgets.splitMarkerBytes);
+  }
+  const heading = stage === "plan"
+    ? `${PLAN_MARKER}\n## Codex implementation proposal`
+    : "<!-- codex-plan-amendment -->\n## Plan amendment";
+  const structured = splitMarker ? `\n${splitMarker}` : "";
+  const body = `${automationMarker}${structured}\n${heading}\n\n${visible}`;
+  validateByteBudget(body, "Combined planning comment", budgets.combinedBytes);
+  validatePublicText(body, { maxBytes: budgets.combinedBytes });
+  return body;
 }
 
 export function transitionFor(stage, classification = "focused") {

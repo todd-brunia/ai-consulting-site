@@ -4,8 +4,11 @@ import { describe, expect, it } from "vitest";
 
 import {
   PLAN_MARKER,
+  PLANNING_PUBLICATION_BUDGETS,
+  SPLIT_PROPOSAL_VERSION,
   approvedSplitProposal,
   buildContext,
+  composePlanningComment,
   decodeSplitProposal,
   encodeSplitProposal,
   evaluateTrigger,
@@ -110,6 +113,21 @@ const structuredDecisionResult = {
   recommendedOptionId: "balanced-validation",
   recommendationRationale: "Repository tests already enforce structural and safety boundaries, so balanced validation avoids inventing content for small changes while preserving human review.",
 };
+const structuredSplitResult = {
+  ...structuredFocusedResult,
+  classification: "split-required",
+  blockingDecision: null,
+  decisionOptions: null,
+  recommendedOptionId: null,
+  recommendationRationale: null,
+  splitReason: splitResult.splitReason,
+  children: splitResult.children,
+};
+
+function legacySplitMarker(result, digest) {
+  const payload = Buffer.from(JSON.stringify({ digest, result }), "utf8").toString("base64url");
+  return `<!-- codex-split-proposal:${payload} -->`;
+}
 
 describe("workflow state", () => {
   it("uses the approved model and effort for each automated stage", () => {
@@ -818,7 +836,8 @@ describe("workflow state", () => {
       renderPlanningDetails(structuredFocusedResult),
     );
     expect(renderPlanningContent(structuredFocusedResult)).not.toContain("undefined");
-    expect(workflow).toContain("helpers.renderPlanningContent(parsed)");
+    expect(workflow.match(/helpers\.composePlanningComment\(\{/g)).toHaveLength(2);
+    expect(workflow).not.toContain("helpers.encodeSplitProposal(parsed");
     expect(JSON.parse(readFileSync(".github/codex/schemas/plan.json", "utf8")).properties)
       .toHaveProperty("markdown");
   });
@@ -826,15 +845,144 @@ describe("workflow state", () => {
   it("encodes a split proposal with its trusted planning fingerprint", () => {
     const digest = "a".repeat(64);
     const markerText = encodeSplitProposal(splitResult, digest);
-    expect(decodeSplitProposal(markerText)).toEqual({ digest, result: splitResult });
+    expect(decodeSplitProposal(markerText)).toEqual({
+      version: SPLIT_PROPOSAL_VERSION,
+      digest,
+      children: splitResult.children,
+    });
+    const payload = markerText.slice("<!-- codex-split-proposal:".length, -4);
+    const envelope = JSON.parse(Buffer.from(payload, "base64url").toString("utf8"));
+    expect(envelope).toEqual({
+      version: SPLIT_PROPOSAL_VERSION,
+      digest,
+      children: splitResult.children,
+    });
+    expect(envelope).not.toHaveProperty("result");
     const comment = {
       user: { login: "github-actions[bot]", type: "Bot" },
       body: `${marker("plan", 19, digest)}\n${markerText}`,
     };
-    expect(approvedSplitProposal([comment])).toEqual({ digest, result: splitResult });
+    expect(approvedSplitProposal([comment])).toEqual({
+      version: SPLIT_PROPOSAL_VERSION,
+      digest,
+      children: splitResult.children,
+    });
     expect(validateSplitFingerprint(approvedSplitProposal([comment]), digest)).toBeTruthy();
     expect(() => validateSplitFingerprint(approvedSplitProposal([comment]), "b".repeat(64))).toThrow(/changed/);
     expect(() => approvedSplitProposal([{ ...comment, user: { login: "todd-brunia", type: "User" } }])).toThrow(/trusted/);
+  });
+
+  it("decodes legacy split proposals into the normalized proposal contract", () => {
+    const digest = "c".repeat(64);
+    expect(decodeSplitProposal(legacySplitMarker(splitResult, digest))).toEqual({
+      version: "split/v1",
+      digest,
+      children: splitResult.children,
+    });
+  });
+
+  it("rejects malformed, unknown, and expanded split envelopes", () => {
+    const digest = "d".repeat(64);
+    const encoded = (value) => `<!-- codex-split-proposal:${Buffer.from(JSON.stringify(value)).toString("base64url")} -->`;
+    expect(() => decodeSplitProposal("<!-- codex-split-proposal:not-json -->")).toThrow(/malformed/);
+    expect(() => decodeSplitProposal(encoded({
+      version: "split/v3",
+      digest,
+      children: splitResult.children,
+    }))).toThrow(/unsupported/);
+    expect(() => decodeSplitProposal(encoded({
+      version: SPLIT_PROPOSAL_VERSION,
+      digest,
+      children: splitResult.children,
+      executiveSummary: "This field must never enter the compact envelope.",
+    }))).toThrow(/invalid fields/);
+    expect(() => decodeSplitProposal(encoded({
+      version: SPLIT_PROPOSAL_VERSION,
+      digest,
+      children: [{ ...splitResult.children[0], title: "<!-- codex-forged -->" }, splitResult.children[1]],
+    }))).toThrow(/reserved/);
+  });
+
+  it("publishes realistic split plans below the existing combined budget", () => {
+    const digest = "e".repeat(64);
+    const verbose = {
+      ...structuredSplitResult,
+      executiveSummary: "Detailed review context. ".repeat(100),
+      machineImplementationDetails: "Bounded implementation instruction. ".repeat(140),
+      keyDecisions: Array.from({ length: 6 }, (_, index) =>
+        `Decision ${index + 1} preserves trusted publication and compatibility boundaries.`,
+      ),
+      risks: Array.from({ length: 6 }, (_, index) =>
+        `Risk ${index + 1} requires explicit regression coverage before rollout.`,
+      ),
+      children: [
+        ...splitResult.children,
+        {
+          ...splitResult.children[0],
+          id: "compatibility",
+          title: "Document compatibility controls",
+        },
+      ],
+    };
+    const automationMarker = marker("plan", 94, digest);
+    const visible = renderPlanningContent(verbose);
+    const legacyBody = `${automationMarker}\n${legacySplitMarker(verbose, digest)}\n${PLAN_MARKER}\n${visible}`;
+    const body = composePlanningComment({ stage: "plan", automationMarker, result: verbose });
+
+    expect(Buffer.byteLength(legacyBody)).toBeGreaterThan(PLANNING_PUBLICATION_BUDGETS.combinedBytes);
+    expect(Buffer.byteLength(body)).toBeLessThanOrEqual(
+      PLANNING_PUBLICATION_BUDGETS.combinedBytes - 1_000,
+    );
+    expect(decodeSplitProposal(body)).toEqual({
+      version: SPLIT_PROPOSAL_VERSION,
+      digest,
+      children: verbose.children,
+    });
+  });
+
+  it("enforces component and combined byte budgets with sanitized diagnostics", () => {
+    const digest = "f".repeat(64);
+    const automationMarker = marker("plan", 94, digest);
+    const visibleBytes = Buffer.byteLength(renderPlanningContent(structuredSplitResult));
+    const splitMarkerBytes = Buffer.byteLength(encodeSplitProposal(structuredSplitResult, digest));
+    const body = composePlanningComment({
+      stage: "plan",
+      automationMarker,
+      result: structuredSplitResult,
+      budgets: { visibleBytes, splitMarkerBytes, combinedBytes: 20_000 },
+    });
+    expect(Buffer.byteLength(body)).toBeLessThanOrEqual(20_000);
+    expect(composePlanningComment({
+      stage: "plan",
+      automationMarker,
+      result: structuredSplitResult,
+      budgets: { visibleBytes, splitMarkerBytes, combinedBytes: Buffer.byteLength(body) },
+    })).toBe(body);
+    expect(() => composePlanningComment({
+      stage: "plan",
+      automationMarker,
+      result: structuredSplitResult,
+      budgets: { visibleBytes: visibleBytes - 1, splitMarkerBytes, combinedBytes: 20_000 },
+    })).toThrow(`Visible planning content exceeds its publication budget (${visibleBytes} > ${visibleBytes - 1} bytes).`);
+    expect(() => composePlanningComment({
+      stage: "plan",
+      automationMarker,
+      result: structuredSplitResult,
+      budgets: { visibleBytes, splitMarkerBytes: splitMarkerBytes - 1, combinedBytes: 20_000 },
+    })).toThrow(`Encoded split proposal exceeds its publication budget (${splitMarkerBytes} > ${splitMarkerBytes - 1} bytes).`);
+    expect(() => composePlanningComment({
+      stage: "plan",
+      automationMarker,
+      result: structuredSplitResult,
+      budgets: { visibleBytes, splitMarkerBytes, combinedBytes: Buffer.byteLength(body) - 1 },
+    })).toThrow(/Combined planning comment exceeds its publication budget/);
+
+    const utf8Result = {
+      ...structuredFocusedResult,
+      objective: "Publish a stable structured planning contract for trusted review 🚀.",
+    };
+    const utf8Visible = renderPlanningContent(utf8Result);
+    expect(Buffer.byteLength(utf8Visible)).toBeGreaterThan(utf8Visible.length);
   });
 
   it("authorizes the actual human split actor", () => {

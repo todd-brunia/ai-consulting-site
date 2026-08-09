@@ -30,14 +30,6 @@ const children = ["schema", "publisher"].map((id) => ({
   excludedScope: ["Unrelated workflow changes."],
   suggestedLabels: ["workflow", "approved-for-build"],
 }));
-const result = {
-  classification: "split-required",
-  markdown: "This issue needs decomposition into independently valuable outcomes.",
-  blockingDecision: null,
-  splitReason: "The outcomes use unrelated change surfaces and validation paths.",
-  children,
-};
-
 function mockGithub({ existing = [], comments = [], failOnCreate = null } = {}) {
   let nextNumber = 100;
   const created = [];
@@ -116,7 +108,7 @@ describe("split publisher", () => {
 
   it("creates all missing children, reconciles a checklist, then closes the parent", async () => {
     const { github, issues, created } = mockGithub();
-    const published = await publishSplit({ github, owner: "todd-brunia", repo: "site", parent, result, digest });
+    const published = await publishSplit({ github, owner: "todd-brunia", repo: "site", parent, children, digest });
 
     expect(created).toHaveLength(2);
     expect(created.map(({ labels }) => labels)).toEqual([
@@ -150,7 +142,7 @@ describe("split publisher", () => {
       state: "open",
     }];
     const { github, issues, created } = mockGithub({ existing });
-    const published = await publishSplit({ github, owner: "todd-brunia", repo: "site", parent, result, digest });
+    const published = await publishSplit({ github, owner: "todd-brunia", repo: "site", parent, children, digest });
 
     expect(created).toHaveLength(1);
     expect(published.confirmed.map(({ number }) => number)).toEqual([88, 100]);
@@ -164,7 +156,7 @@ describe("split publisher", () => {
     const comments = [{ id: 9, body: `<!-- codex-split-checklist:${digest} -->\nOld checklist` }];
     const { github, issues } = mockGithub({ comments });
 
-    await publishSplit({ github, owner: "todd-brunia", repo: "site", parent, result, digest });
+    await publishSplit({ github, owner: "todd-brunia", repo: "site", parent, children, digest });
 
     expect(issues.updateComment).toHaveBeenCalledWith(expect.objectContaining({ comment_id: 9 }));
     expect(issues.createComment).not.toHaveBeenCalled();
@@ -184,9 +176,9 @@ describe("split publisher", () => {
       owner: "todd-brunia",
       repo: "site",
       parent,
-      result: focused,
+      children: focused.children,
       digest,
-    })).rejects.toThrow(/requires a split proposal/);
+    })).rejects.toThrow(/2-10 children/);
     expect(focusedMocks.issues.create).not.toHaveBeenCalled();
 
     const staleMocks = mockGithub();
@@ -195,7 +187,7 @@ describe("split publisher", () => {
       owner: "todd-brunia",
       repo: "site",
       parent: { ...parent, state: "closed" },
-      result,
+      children,
       digest,
     })).rejects.toThrow(/no longer open/);
     expect(staleMocks.issues.create).not.toHaveBeenCalled();
@@ -204,7 +196,7 @@ describe("split publisher", () => {
 
   it("leaves the parent open when child creation partially fails", async () => {
     const { github, issues, created } = mockGithub({ failOnCreate: children[1].title });
-    await expect(publishSplit({ github, owner: "todd-brunia", repo: "site", parent, result, digest }))
+    await expect(publishSplit({ github, owner: "todd-brunia", repo: "site", parent, children, digest }))
       .rejects.toThrow(/simulated/);
 
     expect(created).toHaveLength(1);
@@ -220,7 +212,7 @@ describe("split publisher", () => {
         { number: 89, title: children[0].title, body },
       ],
     });
-    await expect(publishSplit({ github, owner: "todd-brunia", repo: "site", parent, result, digest }))
+    await expect(publishSplit({ github, owner: "todd-brunia", repo: "site", parent, children, digest }))
       .rejects.toThrow(/Multiple issues/);
     expect(issues.create).not.toHaveBeenCalled();
     expect(issues.update).not.toHaveBeenCalled();
@@ -306,7 +298,7 @@ describe("split publisher", () => {
       state: "open",
     }];
     const { github } = mockGithub({ existing });
-    const published = await publishSplit({ github, owner: "todd-brunia", repo: "site", parent, result, digest });
+    const published = await publishSplit({ github, owner: "todd-brunia", repo: "site", parent, children, digest });
 
     expect(published.confirmed.map(({ number }) => number)).toEqual([88, 100]);
     expect(published.handoffs.map(({ childNumber }) => childNumber)).toEqual([100]);

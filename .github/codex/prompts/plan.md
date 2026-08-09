@@ -39,7 +39,9 @@ Return the `plan/v2` structured contract. Always provide every schema field:
   challenging. Never use generic filler.
 - `machineImplementationDetails`: precise scope, acceptance criteria,
   validation, constraints, and applicable accessibility or journal impact for a
-  later implementation agent. Do not authorize implementation.
+  later implementation agent. Keep it concise and avoid repeating the human
+  summary, file changes, or child specifications. Do not authorize
+  implementation.
 - `blockingDecision`, `splitReason`, and `children`: classification metadata;
   use JSON `null` whenever a field does not apply.
 - `decisionOptions`, `recommendedOptionId`, and `recommendationRationale`:
@@ -63,5 +65,8 @@ to ten children, and return null decision-option and recommendation fields.
 Each child needs a stable kebab-case ID, bounded title and
 outcome, independently testable acceptance criteria, explicit dependencies
 (`None` when there are none), included and excluded scope, and suggested
-non-state labels. Do not claim that a plan or child is approved or ready for
+non-state labels. Keep each child specification concise: state each requirement
+once and do not copy shared review sections into every child. The trusted
+publisher enforces separate visible, encoded-proposal, and 20,000-byte combined
+comment budgets. Do not claim that a plan or child is approved or ready for
 implementation.

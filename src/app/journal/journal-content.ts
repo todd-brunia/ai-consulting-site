@@ -16,6 +16,38 @@ export type JournalEntry = {
 
 export const journalEntries = [
   {
+    id: "learning-from-the-side-quests-in-ai-automation",
+    date: "2026-08-09",
+    title: "Learning from the side quests in AI automation",
+    problemOrOpportunity:
+      "Building a label-driven AI delivery workflow has not been a straight path. Each improvement can expose a new interaction between automation, repository state, and the human checkpoints I want to preserve.",
+    accomplished:
+      "I worked through another round of automation failures and came away with a clearer view of how sequencing, ownership, and recovery need to work in a human-directed AI delivery system.",
+    narrativeSections: [
+      {
+        heading: "When one improvement creates another problem",
+        paragraphs: [
+          "I added a way for the automation to split work that had grown too large into smaller issues. The split worked, but the new issues were created by the automation itself. That origin did not satisfy the trust rules for the next planning step, so the workflow either blocked the children or failed instead of moving them forward.",
+          "That was frustrating because the detour sat beside the feature work I wanted to finish. It was also useful evidence: in a label-driven system, every transition has consequences. Creating the right issue is not enough if its labels, history, and permissions leave the next stage unable to act.",
+        ],
+      },
+      {
+        heading: "The workshop is doing its job",
+        paragraphs: [
+          "I am still using the consulting client portal as an incubator for these ideas. It gives me real implementation work against which to test planning, splitting, approval, coding, and recovery without pretending the automation is finished or production-ready.",
+          "The imperfect journey is part of the work. Each bump makes the boundaries between human judgment and automated action more explicit, and each recovery teaches me what the workflow must make visible before I can trust it with a larger role.",
+        ],
+      },
+      {
+        heading: "Keep the goal in view",
+        paragraphs: [
+          "The longer-term goal remains a human-directed AI delivery factory: I want to spend more of my time defining the problem, reviewing the plan, and making consequential decisions, then give well-prepared work to an AI-assisted implementation process.",
+          "I expect more side quests along the way. For anyone following a similar path, the practical lesson is to stay positive and focused on the outcome while treating failures as information. Progress is not a perfect sequence of successful runs; it is the accumulated judgment to make the next run safer and more useful.",
+        ],
+      },
+    ],
+  },
+  {
     id: "published-a-browsable-planning-library",
     date: "2026-08-01",
     title: "Published a browsable planning library",

@@ -90,6 +90,9 @@ Please report suspected vulnerabilities privately by following
 [`SECURITY.md`](SECURITY.md). Do not include sensitive details in a public
 issue.
 
-## License
+## Copyright and reuse
 
-The source code and documentation are available under the [MIT License](LICENSE).
+Copyright © 2026 Todd Brunia. All rights reserved. The repository is public
+for transparency and demonstration, not as a general grant of reuse rights.
+See [COPYRIGHT.md](COPYRIGHT.md) for the terms that apply to original
+repository content.

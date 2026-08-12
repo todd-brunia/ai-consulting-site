@@ -5,10 +5,11 @@ AI-assisted change process from an idea through production.
 
 This repository is public for demonstration purposes and is not currently
 seeking outside contributions. Please do not open unsolicited pull requests.
-The MIT License permits reuse, but it does not imply that proposed changes will
-be reviewed or accepted. Questions about the consulting practice may use the
-contact path on the live site. Suspected vulnerabilities must be reported
-privately according to [`SECURITY.md`](SECURITY.md), never in a public issue.
+Its original content is not available for general reuse; see
+[`COPYRIGHT.md`](COPYRIGHT.md) for the copyright and reuse terms. Questions
+about the consulting practice may use the contact path on the live site.
+Suspected vulnerabilities must be reported privately according to
+[`SECURITY.md`](SECURITY.md), never in a public issue.
 
 ## One-Time Repository Setup
 

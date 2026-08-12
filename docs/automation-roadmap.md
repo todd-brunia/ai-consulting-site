@@ -12,10 +12,11 @@ Phase 1 is implemented in repository guidance, issue and pull request templates,
 and pull-request CI. Todd manually invokes Codex and controls approval labels.
 Codex uses authenticated GitHub CLI access to save plans directly as versioned
 issue comments, then Todd reviews the Vercel preview and merges approved work.
-The repository is prepared for public demonstration under the MIT License; the
-human owner retains responsibility for the visibility change, branch
-protection, private vulnerability reporting, and post-publication verification
-documented in the
+The repository is prepared for public demonstration under the
+all-rights-reserved copyright and reuse policy in
+[`COPYRIGHT.md`](../COPYRIGHT.md); the human owner retains responsibility for
+the visibility change, branch protection, private vulnerability reporting, and
+post-publication verification documented in the
 [`public repository checklist`](public-repository-checklist.md).
 
 ## Phase 1 — Human-Operated Foundation

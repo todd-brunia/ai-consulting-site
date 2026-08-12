@@ -21,8 +21,9 @@ Verified on July 12, 2026, before the repository visibility change:
   repository history.
 - `.gitignore` excludes environment files, private keys, Vercel state,
   dependencies, build output, coverage, and common debug logs.
-- The owner selected the MIT License, a demonstration-only contribution
-  posture, and GitHub private vulnerability reporting.
+- The owner selected the all-rights-reserved copyright and reuse policy in
+  [`COPYRIGHT.md`](../COPYRIGHT.md), a demonstration-only contribution posture,
+  and GitHub private vulnerability reporting.
 
 If a later review finds a credential or confidential content, stop publication
 or public development. Revoke or rotate affected credentials before any
@@ -61,7 +62,8 @@ After publication, use a signed-out browser session and GitHub's API/settings
 to confirm:
 
 - the repository is public and `main` is the default branch;
-- the README, MIT License, security policy, and documentation links render;
+- the README, copyright and reuse terms, security policy, and documentation
+  links render;
 - private vulnerability reporting opens a private advisory rather than a
   public issue;
 - the intended issue forms and pull request template are available;

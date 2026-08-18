@@ -16,6 +16,39 @@ export type JournalEntry = {
 
 export const journalEntries = [
   {
+    id: "experimenting-with-google-ai-and-antigravity-cli",
+    date: "2026-08-17",
+    title: "Tried Google AI and the Antigravity CLI to wrap up a delivery milestone",
+    problemOrOpportunity:
+      "I had used up my Codex credits after a heavy weekend of AI-assisted work, and I wanted to keep momentum on the ai-delivery-orchestrator project rather than wait for credits to reset.",
+    accomplished:
+      "I switched to the Antigravity CLI with the Gemini 3.7 Flash model and used it to complete the second milestone of the ai-delivery-orchestrator build. The experiment gave me a useful reference point for comparing two AI-assisted coding tools.",
+    narrativeSections: [
+      {
+        heading: "A familiar feel with a different model",
+        paragraphs: [
+          "The Antigravity CLI felt similar to Codex in its overall structure: a series of prompts, confirmations, and model-generated changes reviewed before they land. That similarity made it easy to pick up. The main difference I noticed on first use was the number of permission prompts. That was expected for a first session — a new harness needs to learn my defaults before it can operate with less friction.",
+        ],
+      },
+      {
+        heading: "Speed and documentation",
+        paragraphs: [
+          "The Gemini 3.7 Flash model ran noticeably fast and gave responses that felt appropriately direct. I also found the documentation less wordy than my experience with GPT 5.6 Sol. That is a personal observation from one session, not a benchmark, but it was enough to make the tool feel productive for the kind of focused implementation work I was doing.",
+        ],
+      },
+      {
+        heading: "What I built with it",
+        paragraphs: [
+          "I used the Antigravity CLI to create a pull request that aligned the bootstrap IAM policies and parameterized deletion protection across the Aurora cluster and DynamoDB coordination table. That work completed the live AWS deployment lifecycle verification for Milestone 2 of the delivery orchestrator.",
+        ],
+      },
+    ],
+    relatedLink: {
+      href: "https://github.com/todd-brunia/ai-delivery-orchestrator/pull/158",
+      label: "View the pull request created with Google AI assistance",
+    },
+  },
+  {
     id: "learning-consumption-lessons-in-agentic-ai-work",
     date: "2026-08-15",
     title: "Learning consumption lessons while pushing further into agentic AI",

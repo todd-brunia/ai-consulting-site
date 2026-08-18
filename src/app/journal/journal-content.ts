@@ -17,7 +17,7 @@ export type JournalEntry = {
 export const journalEntries = [
   {
     id: "learning-consumption-lessons-in-agentic-ai-work",
-    date: "2026-09-15",
+    date: "2026-08-15",
     title: "Learning consumption lessons while pushing further into agentic AI",
     problemOrOpportunity:
       "As I put more of my attention into the ai-delivery-orchestrator, I wanted to explore how far an AI-assisted delivery workflow could go while keeping my own review and judgment in the loop.",

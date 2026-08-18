@@ -16,6 +16,37 @@ export type JournalEntry = {
 
 export const journalEntries = [
   {
+    id: "learning-consumption-lessons-in-agentic-ai-work",
+    date: "2026-08-15",
+    title: "Learning consumption lessons while pushing further into agentic AI",
+    problemOrOpportunity:
+      "As I put more of my attention into the ai-delivery-orchestrator, I wanted to explore how far an AI-assisted delivery workflow could go while keeping my own review and judgment in the loop.",
+    accomplished:
+      "I made the repository public, continued experimenting with Codex, and used GitHub workflows to create and remove the AWS resources for the experiment when I needed them. The week reinforced that AI can accelerate work, but it does not remove my responsibility to understand the changes or the costs involved.",
+    narrativeSections: [
+      {
+        heading: "Staying engaged with the work",
+        paragraphs: [
+          "I tried Codex's approval mode after becoming impatient with repeated requests for input. Based on the usage data I saw in the Codex admin dashboard, my own observation was that credits were being consumed at roughly five times the rate I expected. That is one week of personal usage, not a general claim about the product, but it was a useful reminder to pay attention to how an AI tool is operating and being used.",
+          "When I needed to update IAM policies without Codex available, I had to read through AI-generated Terraform and documentation to understand what was happening. The work was slower, but it reinforced a practical lesson: I still need to stay close enough to AI-generated changes to review them, question them, and take responsibility for the decisions they support.",
+        ],
+      },
+      {
+        heading: "Making experimentation cost-aware",
+        paragraphs: [
+          "I also used GitHub workflows to create the AWS resources for the delivery-orchestrator experiment and to remove them afterward. Being able to take the environment down when I am not using it gives me a clearer way to control costs while I continue learning.",
+          "The goal is not to keep infrastructure running simply because it exists. I want to use it deliberately, learn from a bounded experiment, and leave room to change direction as the workflow becomes clearer.",
+        ],
+      },
+      {
+        heading: "A practical next step",
+        paragraphs: [
+          "I am continuing to focus on the ai-delivery-orchestrator as a place to test more agentic AI usage. The week did not produce a finished answer about the right level of automation. It did make the boundary clearer: useful AI assistance depends on active human oversight, understandable changes, and attention to the resources the workflow consumes.",
+        ],
+      },
+    ],
+  },
+  {
     id: "learning-from-the-side-quests-in-ai-automation",
     date: "2026-08-09",
     title: "Learning from the side quests in AI automation",

@@ -55,7 +55,7 @@ describe("JournalPage", () => {
       name: "Learning consumption lessons while pushing further into agentic AI",
     }).parentElement;
     expect(consumptionLessonsArticle).not.toBeNull();
-    expect(consumptionLessonsArticle).toHaveTextContent("September 15, 2026");
+    expect(consumptionLessonsArticle).toHaveTextContent("August 15, 2026");
     expect(consumptionLessonsArticle).toHaveTextContent("ai-delivery-orchestrator");
     expect(consumptionLessonsArticle).toHaveTextContent("Staying engaged with the work");
     expect(consumptionLessonsArticle).toHaveTextContent(

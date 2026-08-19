@@ -36,7 +36,7 @@ describe("JournalPage", () => {
     render(<JournalPage />);
 
     const articles = screen.getAllByRole("article");
-    expect(articles).toHaveLength(18);
+    expect(articles).toHaveLength(19);
 
     articles.forEach((article, index) => {
       const entry = journalEntries[index];
@@ -51,7 +51,32 @@ describe("JournalPage", () => {
       expect(within(article).getByText("What changed")).toBeInTheDocument();
     });
 
-    const googleAiArticle = within(articles[0]).getByRole("heading", {
+    const deepSeekArticle = within(articles[0]).getByRole("heading", {
+      name: "Tried DeepSeek V4 Flash in OpenCode for a focused implementation task",
+    }).parentElement;
+    expect(deepSeekArticle).not.toBeNull();
+    expect(deepSeekArticle).toHaveTextContent("August 19, 2026");
+    expect(deepSeekArticle).toHaveTextContent("OpenCode");
+    expect(deepSeekArticle).toHaveTextContent("free DeepSeek V4 Flash access");
+    expect(deepSeekArticle).toHaveTextContent("implementation-only work from issue #104");
+    expect(deepSeekArticle).toHaveTextContent("pull request #105");
+    expect(deepSeekArticle).toHaveTextContent("OpenAI GPT 5.6 Sol");
+    expect(deepSeekArticle).toHaveTextContent("created a todo list");
+    expect(deepSeekArticle).toHaveTextContent("around five minutes");
+    expect(deepSeekArticle).toHaveTextContent("results looked pretty good");
+    expect(deepSeekArticle).toHaveTextContent("a little choppy");
+    expect(deepSeekArticle).toHaveTextContent("run-on sentences");
+    expect(deepSeekArticle).toHaveTextContent("it worked out OK");
+    expect(
+      within(deepSeekArticle!).getByRole("link", {
+        name: "View pull request #105 for the Public Work page",
+      }),
+    ).toHaveAttribute(
+      "href",
+      "https://github.com/todd-brunia/ai-consulting-site/pull/105",
+    );
+
+    const googleAiArticle = within(articles[1]).getByRole("heading", {
       name: "Tried Google AI and the Antigravity CLI to wrap up a delivery milestone",
     }).parentElement;
     expect(googleAiArticle).not.toBeNull();
@@ -73,7 +98,7 @@ describe("JournalPage", () => {
       "https://github.com/todd-brunia/ai-delivery-orchestrator/pull/158",
     );
 
-    const consumptionLessonsArticle = within(articles[1]).getByRole("heading", {
+    const consumptionLessonsArticle = within(articles[2]).getByRole("heading", {
       name: "Learning consumption lessons while pushing further into agentic AI",
     }).parentElement;
     expect(consumptionLessonsArticle).not.toBeNull();
@@ -96,7 +121,7 @@ describe("JournalPage", () => {
       "A practical next step",
     );
 
-    const automationLessonsArticle = within(articles[2]).getByRole("heading", {
+    const automationLessonsArticle = within(articles[3]).getByRole("heading", {
       name: "Learning from the side quests in AI automation",
     }).parentElement;
     expect(automationLessonsArticle).not.toBeNull();
@@ -114,7 +139,7 @@ describe("JournalPage", () => {
       "I expect more side quests along the way",
     );
 
-    const planningLibraryArticle = within(articles[3]).getByRole("heading", {
+    const planningLibraryArticle = within(articles[4]).getByRole("heading", {
       name: "Published a browsable planning library",
     }).parentElement;
     expect(planningLibraryArticle).not.toBeNull();
@@ -137,7 +162,7 @@ describe("JournalPage", () => {
       "https://todd-brunia.github.io/ai-consulting-meta/",
     );
 
-    const newEntryArticle = within(articles[4]).getByRole("heading", {
+    const newEntryArticle = within(articles[5]).getByRole("heading", {
       name: "Built a local client portal onboarding flow",
     }).parentElement;
     expect(newEntryArticle).not.toBeNull();
@@ -163,7 +188,7 @@ describe("JournalPage", () => {
       "https://github.com/todd-brunia/ai-consulting-meta/blob/b818d07/plans/client-portal/implementation-checkpoint-2026-07-28.md",
     );
 
-    const revisedPlanArticle = within(articles[5]).getByRole("heading", {
+    const revisedPlanArticle = within(articles[6]).getByRole("heading", {
       name: "Revised a client portal plan through dialogue with AI",
     }).parentElement;
     expect(revisedPlanArticle).not.toBeNull();
@@ -199,15 +224,15 @@ describe("JournalPage", () => {
       "href",
       "https://github.com/todd-brunia/ai-consulting-meta/blob/36bf7375fceb19b7a6eb9be648d4aa3dc87a5bed/plans/client-portal/revised-plan.md",
     );
-    expect(articles[6]).toHaveTextContent(
+    expect(articles[7]).toHaveTextContent(
       "Built an onboarding automation proof of concept",
     );
-    expect(articles[6]).toHaveTextContent("July 17, 2026");
-    expect(articles[6]).toHaveTextContent(
+    expect(articles[7]).toHaveTextContent("July 17, 2026");
+    expect(articles[7]).toHaveTextContent(
       "LangGraph orchestration and a local language model",
     );
     expect(
-      within(articles[6]).getByRole("link", {
+      within(articles[7]).getByRole("link", {
         name: "View the AI onboarding automation proof of concept",
       }),
     ).toHaveAttribute(

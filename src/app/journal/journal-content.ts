@@ -16,6 +16,33 @@ export type JournalEntry = {
 
 export const journalEntries = [
   {
+    id: "trying-deepseek-v4-flash-in-OpenCode",
+    date: "2026-08-19",
+    title: "Tried DeepSeek V4 Flash in OpenCode for a focused implementation task",
+    problemOrOpportunity:
+      "I wanted to see what it felt like to use OpenCode with free DeepSeek V4 Flash access for a simple, well-scoped implementation task after the plan had already been completed.",
+    accomplished:
+      "I used it for the implementation-only work from issue #104, which resulted in pull request #105 for a new Public Work page on this consulting site. The tool created a todo list and worked through the implementation in around five minutes.",
+    narrativeSections: [
+      {
+        heading: "A familiar implementation flow",
+        paragraphs: [
+          "DeepSeek V4 Flash in OpenCode felt similar to my experience with OpenAI GPT 5.6 Sol in Codex. That is a personal observation from this one focused session, not a comparison of either tool's performance or quality.",
+        ],
+      },
+      {
+        heading: "What I noticed in the result",
+        paragraphs: [
+          "The results looked pretty good to me. Some of the language it generated was a little choppy and included run-on sentences, but for a simple task like adding a new Public Work page to the consulting site, it worked out OK.",
+        ],
+      },
+    ],
+    relatedLink: {
+      href: "https://github.com/todd-brunia/ai-consulting-site/pull/105",
+      label: "View pull request #105 for the Public Work page",
+    },
+  },
+  {
     id: "experimenting-with-google-ai-and-antigravity-cli",
     date: "2026-08-17",
     title: "Tried Google AI and the Antigravity CLI to wrap up a delivery milestone",

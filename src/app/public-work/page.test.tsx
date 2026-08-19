@@ -105,6 +105,40 @@ describe("PublicWorkPage", () => {
       "https://todd-brunia.github.io/ai-consulting-meta/",
     );
   });
+
+  it("lists the AI delivery orchestrator with sharing, client-use, and work-in-progress context", () => {
+    render(<PublicWorkPage />);
+
+    expect(
+      screen.getByRole("heading", {
+        level: 2,
+        name: "AI Delivery Orchestrator",
+      }),
+    ).toBeInTheDocument();
+    expect(screen.getByText(/governed AI delivery orchestrator/i)).toBeInTheDocument();
+    expect(screen.getByText(/preserving human approval boundaries/i)).toBeInTheDocument();
+    expect(screen.getByText(/licensed under Apache 2.0 for clients to fork/i)).toBeInTheDocument();
+    expect(screen.getByText(/still a work in progress/i)).toBeInTheDocument();
+    expect(
+      screen.getAllByRole("link", { name: "Explore this example" })[3],
+    ).toHaveAttribute("href", "/public-work/ai-delivery-orchestrator");
+    expect(
+      screen.getByRole("link", {
+        name: "View AI Delivery Orchestrator repository",
+      }),
+    ).toHaveAttribute(
+      "href",
+      "https://github.com/todd-brunia/ai-delivery-orchestrator",
+    );
+    expect(
+      screen.getByRole("link", {
+        name: "AI Delivery Orchestrator: Review planning documentation",
+      }),
+    ).toHaveAttribute(
+      "href",
+      "https://todd-brunia.github.io/ai-consulting-meta/plans/governed-codex-automation/",
+    );
+  });
 });
 
 describe("PublicWorkList", () => {

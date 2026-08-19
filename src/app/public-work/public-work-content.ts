@@ -50,4 +50,18 @@ export const publicWorkItems = [
       },
     ],
   },
+  {
+    id: "ai-delivery-orchestrator",
+    name: "AI Delivery Orchestrator",
+    description:
+      "A governed AI delivery orchestrator that sequences issues, coordinates AI builds, and reviews pull requests while preserving human approval boundaries. It is licensed under Apache 2.0 for clients to fork into accounts they control, and it is still a work in progress rather than a finished product.",
+    detailPath: "/public-work/ai-delivery-orchestrator",
+    repositoryUrl: "https://github.com/todd-brunia/ai-delivery-orchestrator",
+    supportingLinks: [
+      {
+        label: "Review planning documentation",
+        href: "https://todd-brunia.github.io/ai-consulting-meta/plans/governed-codex-automation/",
+      },
+    ],
+  },
 ] satisfies readonly PublicWorkItem[];

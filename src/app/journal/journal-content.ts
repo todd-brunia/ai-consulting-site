@@ -33,7 +33,7 @@ export const journalEntries = [
       {
         heading: "What I noticed in the result",
         paragraphs: [
-          "The results looked pretty good to me. Some of the language it generated was a little stilted and included run-on sentences, but for a simple task like adding a new Public Work page to the consulting site, it worked out OK.",
+          "The results looked pretty good to me. Some of the language it generated was a little choppy and included run-on sentences, but for a simple task like adding a new Public Work page to the consulting site, it worked out OK.",
         ],
       },
     ],

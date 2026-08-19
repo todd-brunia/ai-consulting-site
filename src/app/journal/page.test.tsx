@@ -56,7 +56,7 @@ describe("JournalPage", () => {
     }).parentElement;
     expect(deepSeekArticle).not.toBeNull();
     expect(deepSeekArticle).toHaveTextContent("August 19, 2026");
-    expect(deepSeekArticle).toHaveTextContent("opencode");
+    expect(deepSeekArticle).toHaveTextContent("OpenCode");
     expect(deepSeekArticle).toHaveTextContent("free DeepSeek V4 Flash access");
     expect(deepSeekArticle).toHaveTextContent("implementation-only work from issue #104");
     expect(deepSeekArticle).toHaveTextContent("pull request #105");
@@ -64,7 +64,7 @@ describe("JournalPage", () => {
     expect(deepSeekArticle).toHaveTextContent("created a todo list");
     expect(deepSeekArticle).toHaveTextContent("around five minutes");
     expect(deepSeekArticle).toHaveTextContent("results looked pretty good");
-    expect(deepSeekArticle).toHaveTextContent("a little stilted");
+    expect(deepSeekArticle).toHaveTextContent("a little choppy");
     expect(deepSeekArticle).toHaveTextContent("run-on sentences");
     expect(deepSeekArticle).toHaveTextContent("it worked out OK");
     expect(

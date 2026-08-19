@@ -52,7 +52,7 @@ describe("JournalPage", () => {
     });
 
     const deepSeekArticle = within(articles[0]).getByRole("heading", {
-      name: "Tried DeepSeek V4 Flash in opencode for a focused implementation task",
+      name: "Tried DeepSeek V4 Flash in OpenCode for a focused implementation task",
     }).parentElement;
     expect(deepSeekArticle).not.toBeNull();
     expect(deepSeekArticle).toHaveTextContent("August 19, 2026");

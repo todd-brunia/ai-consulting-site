@@ -16,18 +16,18 @@ export type JournalEntry = {
 
 export const journalEntries = [
   {
-    id: "trying-deepseek-v4-flash-in-opencode",
+    id: "trying-deepseek-v4-flash-in-OpenCode",
     date: "2026-08-19",
-    title: "Tried DeepSeek V4 Flash in opencode for a focused implementation task",
+    title: "Tried DeepSeek V4 Flash in OpenCode for a focused implementation task",
     problemOrOpportunity:
-      "I wanted to see what it felt like to use opencode with free DeepSeek V4 Flash access for a simple, well-scoped implementation task after the plan had already been completed.",
+      "I wanted to see what it felt like to use OpenCode with free DeepSeek V4 Flash access for a simple, well-scoped implementation task after the plan had already been completed.",
     accomplished:
       "I used it for the implementation-only work from issue #104, which resulted in pull request #105 for a new Public Work page on this consulting site. The tool created a todo list and worked through the implementation in around five minutes.",
     narrativeSections: [
       {
         heading: "A familiar implementation flow",
         paragraphs: [
-          "DeepSeek V4 Flash in opencode felt similar to my experience with OpenAI GPT 5.6 Sol. That is a personal observation from this one focused session, not a comparison of either tool's performance or quality.",
+          "DeepSeek V4 Flash in OpenCode felt similar to my experience with OpenAI GPT 5.6 Sol in Codex. That is a personal observation from this one focused session, not a comparison of either tool's performance or quality.",
         ],
       },
       {

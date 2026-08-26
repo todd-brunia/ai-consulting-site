@@ -64,4 +64,13 @@ export const publicWorkItems = [
       },
     ],
   },
+  {
+    id: "aws-bedrock-on-demand-pilot",
+    name: "AWS Bedrock On-Demand Pilot",
+    description:
+      "A public Terraform foundation for client-owned local OpenCode sessions that use AWS IAM Identity Center and Amazon Bedrock on-demand inference.",
+    detailPath: "/public-work/aws-bedrock-on-demand-pilot",
+    repositoryUrl:
+      "https://github.com/todd-brunia/aws-bedrock-on-demand-template",
+  },
 ] satisfies readonly PublicWorkItem[];

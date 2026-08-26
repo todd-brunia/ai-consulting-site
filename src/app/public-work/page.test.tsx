@@ -139,6 +139,31 @@ describe("PublicWorkPage", () => {
       "https://todd-brunia.github.io/ai-consulting-meta/plans/governed-codex-automation/",
     );
   });
+
+  it("lists the AWS Bedrock on-demand pilot", () => {
+    render(<PublicWorkPage />);
+
+    expect(
+      screen.getByRole("heading", {
+        level: 2,
+        name: "AWS Bedrock On-Demand Pilot",
+      }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(/client-owned local OpenCode sessions/i),
+    ).toBeInTheDocument();
+    expect(
+      screen.getAllByRole("link", { name: "Explore this example" })[4],
+    ).toHaveAttribute("href", "/public-work/aws-bedrock-on-demand-pilot");
+    expect(
+      screen.getByRole("link", {
+        name: "View AWS Bedrock On-Demand Pilot repository",
+      }),
+    ).toHaveAttribute(
+      "href",
+      "https://github.com/todd-brunia/aws-bedrock-on-demand-template",
+    );
+  });
 });
 
 describe("PublicWorkList", () => {

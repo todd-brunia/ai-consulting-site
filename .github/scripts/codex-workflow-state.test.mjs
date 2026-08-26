@@ -152,6 +152,29 @@ describe("workflow state", () => {
     );
   });
 
+  it("validates implementation patches before the publisher handoff", () => {
+    const workflow = readFileSync(".github/workflows/codex-label-automation.yml", "utf8");
+    const patchValidation = workflow.indexOf("- name: Create and validate implementation patch");
+    const preHandoffValidation = workflow.indexOf("- name: Validate implementation before handoff");
+    const artifactUpload = workflow.indexOf("- name: Upload sanitized result");
+    const validationStep = workflow.slice(preHandoffValidation, artifactUpload);
+    const publisher = workflow.slice(workflow.indexOf("  publish_implementation:"));
+
+    expect(patchValidation).toBeGreaterThan(-1);
+    expect(preHandoffValidation).toBeGreaterThan(patchValidation);
+    expect(artifactUpload).toBeGreaterThan(preHandoffValidation);
+    expect(validationStep).toContain(
+      "if: steps.context.outputs.action == 'run' && steps.context.outputs.stage == 'implement'",
+    );
+    expect(validationStep).toContain("npm ci");
+    for (const command of ["npm run lint", "npm run typecheck", "npm test", "npm run build"]) {
+      expect(validationStep).toContain(command);
+    }
+    expect(publisher).toContain("- name: Check out current default branch without credentials");
+    expect(publisher).toContain("- name: Install dependencies");
+    expect(publisher).toContain("- name: Validate implementation");
+  });
+
   it("uses the AI-specific label as the only implementation event", () => {
     const workflow = readFileSync(".github/workflows/codex-label-automation.yml", "utf8");
 

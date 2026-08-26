@@ -16,6 +16,19 @@ export type JournalEntry = {
 
 export const journalEntries = [
   {
+    id: "evaluated-planning-models",
+    date: "2026-08-25",
+    title: "Evaluated planning models for a practical working approach",
+    problemOrOpportunity:
+      "I wanted a grounded way to choose a planning setup for my own AI-assisted work without turning one small evaluation into a general benchmark.",
+    accomplished:
+      "I compared eight submitted plans qualitatively. Luna ranked first and Terra second, and I recorded the methods, limits, and my current working approach on a separate page.",
+    relatedLink: {
+      href: "/journal/planning-model-evaluation",
+      label: "Read the planning-model evaluation",
+    },
+  },
+  {
     id: "trying-deepseek-v4-flash-in-OpenCode",
     date: "2026-08-19",
     title: "Tried DeepSeek V4 Flash in OpenCode for a focused implementation task",

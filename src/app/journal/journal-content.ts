@@ -16,6 +16,29 @@ export type JournalEntry = {
 
 export const journalEntries = [
   {
+    id: "finished-m3-e1-with-a-supervised-builder-step",
+    date: "2026-08-28",
+    title: "Finished M3/E1 with a supervised builder step",
+    problemOrOpportunity:
+      "I wanted to finish M3/E1 of the AI Delivery Orchestrator with a careful way for a builder to complete one small pull-request readiness task while people kept the broader safety decisions and review.",
+    accomplished:
+      "I added a closely supervised builder-automation capability for this narrowly scoped readiness step. It took more pull requests than I expected, but the result is a testable boundary rather than a claim of hands-off automation.",
+    narrativeSections: [
+      {
+        heading: "A goal Luna could check",
+        paragraphs: [
+          "OpenAI's GPT-5.6 Luna started with a scripted test that defined a verifiable goal. Across iterative pull requests, it corrected course and kept working until the capability held up. Watching that feedback loop become real was genuinely cool.",
+        ],
+      },
+      {
+        heading: "Keeping the explanation human",
+        paragraphs: [
+          "Part of the work was making the summary less technical. I asked Luna to explain the completed epic in a tone reminiscent of People magazine writers, and that prompt helped trim the jargon without hiding the careful boundaries.",
+        ],
+      },
+    ],
+  },
+  {
     id: "evaluated-planning-models",
     date: "2026-08-25",
     title: "Evaluated planning models for a practical working approach",
